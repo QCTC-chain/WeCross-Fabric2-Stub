@@ -463,7 +463,7 @@ public class FabricDriver implements Driver {
                                         transaction
                                                 .getTransactionResponse()
                                                 .setBlockNumber(blockNumber);
-                                        block.getTransactionsWithDetail().add(transaction);
+                                        // block.getTransactionsWithDetail().add(transaction);
                                     } catch (InvalidProtocolBufferException e) {
                                         logger.warn(
                                                 "Invalid fabric block transactions,blockNumber: {},e: {}",
@@ -566,6 +566,13 @@ public class FabricDriver implements Driver {
                 });
     }
 
+    @Override
+    public void subscribeEvent(
+            TransactionContext context,
+            SubscribeRequest request,
+            Connection connection,
+            Driver.Callback callback) {}
+
     private void asyncSendTransactionHandleEndorserResponse(
             TransactionContext transactionContext,
             byte[] envelopeRequestData,
@@ -650,7 +657,7 @@ public class FabricDriver implements Driver {
                                     response.setBlockNumber(txBlockNumber);
                                     response.setErrorCode(
                                             FabricType.TransactionResponseStatus.SUCCESS);
-                                    response.setTimestamp(fabricTransaction.getTimestamp());
+                                    // response.setTimestamp(fabricTransaction.getTimestamp());
                                     response.setMessage("Success");
                                     transactionException =
                                             TransactionException.Builder.newSuccessException();
@@ -1499,7 +1506,7 @@ public class FabricDriver implements Driver {
         ByteString payload = ByteString.copyFrom(outputBytes);
         String[] output = new String[] {payload.toStringUtf8()};
         transaction.getTransactionResponse().setResult(output);
-        transaction.getTransactionResponse().setTimestamp(fabricTransaction.getTimestamp());
+        // transaction.getTransactionResponse().setTimestamp(fabricTransaction.getTimestamp());
 
         /** xa */
         transaction.setTransactionByProxy(byProxy);
