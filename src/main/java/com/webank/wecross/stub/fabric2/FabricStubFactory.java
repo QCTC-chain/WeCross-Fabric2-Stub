@@ -1,5 +1,6 @@
 package com.webank.wecross.stub.fabric2;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.Connection;
 import com.webank.wecross.stub.Driver;
@@ -9,13 +10,17 @@ import com.webank.wecross.stub.WeCrossContext;
 import com.webank.wecross.stub.fabric2.FabricCustomCommand.InstallCommand;
 import com.webank.wecross.stub.fabric2.FabricCustomCommand.InstantiateCommand;
 import com.webank.wecross.stub.fabric2.account.FabricAccountFactory;
+import com.webank.wecross.stub.fabric2.config.StubConfig;
 import com.webank.wecross.stub.fabric2.performance.PerformanceTest;
 import com.webank.wecross.stub.fabric2.performance.ProxyTest;
 import com.webank.wecross.stub.fabric2.proxy.ProxyChaincodeDeployment;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
+import java.util.StringJoiner;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,45 +111,67 @@ public class FabricStubFactory implements StubFactory {
         }
     }
 
+    private void writeContent(File file, String content) throws IOException {
+        if (!file.createNewFile()) {
+            return;
+        }
+
+        FileWriter fileWriter = new FileWriter(file);
+        try {
+            fileWriter.write(content);
+        } finally {
+            fileWriter.close();
+        }
+    }
+    private String generateTomlStr(String path, String[] args) throws Exception {
+        String chainType = args[0];
+        String chainName = args[1];
+        String stubConfigStr = args[2];
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        StubConfig stubConfig = objectMapper.readValue(stubConfigStr, StubConfig.class);
+
+        StringJoiner toml = new StringJoiner("\n");
+
+        String stubCommon = "[common]\n" +
+                "    name = '" + chainName + "'\n" +
+                "    type = '" + chainType + "'\n";
+        toml.add(stubCommon);
+
+        File ordererTlsCaFile = new File(path + File.separator + "orderer-tlsca.crt");
+        writeContent(ordererTlsCaFile, stubConfig.fabricServices.ordererTlsCaFile);
+
+        String stubFabricServices = "[fabricServices]\n" +
+                "    channelName = '" + stubConfig.fabricServices.channelName + "'\n" +
+                "    orgUserName = '" + stubConfig.fabricServices.orgUserName + "'\n" +
+                "    ordererTlsCaFile = '" + ordererTlsCaFile.getName() + "'\n" +
+                "    ordererAddress = '" + stubConfig.fabricServices.ordererAddress.get(0) + "'\n";
+        toml.add(stubFabricServices);
+
+        StringJoiner stubOrgs = new StringJoiner("\n");
+        stubOrgs.add("[orgs]");
+        String stubOrgTemplate = "    [orgs.%s]\n" +
+                "        tlsCaFile = '%s'\n" +
+                "        adminName = '%s'\n" +
+                "        endorsers = %s\n";
+        for(StubConfig.Org org: stubConfig.orgs) {
+            String orgId = org.id;
+            File tlsCaFile = new File(path + File.separator + String.format("%s-tlsca.crt", orgId));
+            writeContent(tlsCaFile, org.tlsCaFile);
+            String endorsers = org.endorsers.toString();
+            stubOrgs.add(String.format(stubOrgTemplate, orgId, tlsCaFile.getName(), org.adminName, endorsers));
+        }
+        toml.add(stubOrgs.toString());
+        return toml.toString();
+    }
+
     @Override
     public void generateConnection(String path, String[] args) {
         try {
             String chainName = new File(path).getName();
-
-            String accountTemplate =
-                    "[common]\n"
-                            + "    name = 'fabric2'\n"
-                            + "    type = 'Fabric2.0'\n"
-                            + "\n"
-                            + "[fabricServices]\n"
-                            + "    channelName = 'mychannel'\n"
-                            + "    orgUserName = 'fabric2_admin'\n"
-                            + "    ordererTlsCaFile = 'orderer-tlsca.crt'\n"
-                            + "    ordererAddress = 'grpcs://localhost:7050'\n"
-                            + "\n"
-                            + "[orgs]\n"
-                            + "    [orgs.org1]\n"
-                            + "        tlsCaFile = 'org1-tlsca.crt'\n"
-                            + "        adminName = 'fabric2_admin_org1'\n"
-                            + "        endorsers = ['grpcs://localhost:7051']\n"
-                            + "\n"
-                            + "    [orgs.org2]\n"
-                            + "        tlsCaFile = 'org2-tlsca.crt'\n"
-                            + "        adminName = 'fabric2_admin_org2'\n"
-                            + "        endorsers = ['grpcs://localhost:9051']\n";
-            String confFilePath = path + "/stub.toml";
-            File confFile = new File(confFilePath);
-            if (!confFile.createNewFile()) {
-                logger.error("Conf file exists! {}", confFile);
-                return;
-            }
-
-            FileWriter fileWriter = new FileWriter(confFile);
-            try {
-                fileWriter.write(accountTemplate);
-            } finally {
-                fileWriter.close();
-            }
+            String stubTomlContent = generateTomlStr(path, args);;
+            File confFile = new File(path + File.separator + "stub.toml");
+            writeContent(confFile, stubTomlContent);
 
             // Generate proxy and hub chaincodes
             generateProxyChaincodes(path);
