@@ -158,8 +158,11 @@ public class FabricStubFactory implements StubFactory {
             String orgId = org.id;
             File tlsCaFile = new File(path + File.separator + String.format("%s-tlsca.crt", orgId));
             writeContent(tlsCaFile, org.tlsCaFile);
-            String endorsers = org.endorsers.toString();
-            stubOrgs.add(String.format(stubOrgTemplate, orgId, tlsCaFile.getName(), org.adminName, endorsers));
+            StringJoiner endorsers = new StringJoiner(",");
+            for(String endorser: org.endorsers) {
+                endorsers.add("'" + endorser + "'");
+            }
+            stubOrgs.add(String.format(stubOrgTemplate, orgId, tlsCaFile.getName(), org.adminName, "[" + endorsers + "]"));
         }
         toml.add(stubOrgs.toString());
         return toml.toString();
