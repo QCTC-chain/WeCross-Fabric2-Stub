@@ -17,6 +17,8 @@ public class FabricType {
         public static final int FABRIC_GET_BLOCK = 2005;
         public static final int FABRIC_GET_TRANSACTION = 2006;
         public static final int FABRIC_SENDTRANSACTION_ORG_ENDORSER = 2007;
+        public static final int FABRIC_REGISTER_CHAINCODE_EVENT = 2008;
+        public static final int FABRIC_UNREGISTER_CHAINCODE_EVENT = 2009;
     }
 
     public static class Resource {
@@ -44,6 +46,8 @@ public class FabricType {
         public static final int INTERNAL_ERROR = 3101;
         public static final int ILLEGAL_REQUEST_TYPE = 3102;
         public static final int RESOURCE_NOT_FOUND = 3103;
+        public static final int FABRIC_REGISTER_CHAINCODE_EVENT_FAILED = 3104;
+        public static final int FABRIC_UNREGISTER_CHAINCODE_EVENT_FAILED = 3105;
     }
 
     public static org.hyperledger.fabric.sdk.TransactionRequest.Type stringTochainCodeType(

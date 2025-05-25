@@ -4,10 +4,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 import org.hyperledger.fabric.protos.common.Common;
 import org.hyperledger.fabric.protos.orderer.Ab;
 import org.hyperledger.fabric.protos.peer.ProposalPackage;
 import org.hyperledger.fabric.sdk.*;
+import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.transaction.TransactionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,5 +101,29 @@ public class FabricInnerFunction {
         } catch (InvocationTargetException e) {
             throw new Exception(e.getTargetException().getMessage());
         }
+    }
+
+    public String registerChaincodeEventListener(
+            Pattern chainCodeId, Pattern eventName, ChaincodeEventListener chaincodeEventListener)
+            throws Exception {
+        String handle;
+        try {
+            handle =
+                    this.channel.registerChaincodeEventListener(
+                            chainCodeId, eventName, chaincodeEventListener);
+        } catch (InvalidArgumentException e) {
+            throw new Exception(e.getMessage());
+        }
+        return handle;
+    }
+
+    public boolean unregisterChaincodeEventListener(String handle) throws Exception {
+        boolean ok;
+        try {
+            ok = this.channel.unregisterChaincodeEventListener(handle);
+        } catch (InvalidArgumentException e) {
+            throw new Exception(e.getMessage());
+        }
+        return ok;
     }
 }

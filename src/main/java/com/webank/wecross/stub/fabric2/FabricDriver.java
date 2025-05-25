@@ -3,6 +3,8 @@ package com.webank.wecross.stub.fabric2;
 import static com.webank.wecross.stub.fabric2.utils.FabricUtils.bytesToLong;
 import static com.webank.wecross.stub.fabric2.utils.FabricUtils.longToBytes;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.webank.wecross.stub.*;
@@ -20,9 +22,7 @@ import com.webank.wecross.stub.fabric2.account.FabricAccountFactory;
 import com.webank.wecross.stub.fabric2.common.FabricType;
 import com.webank.wecross.stub.fabric2.proxy.ProxyChaincodeResource;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 public class FabricDriver implements Driver {
     private Logger logger = LoggerFactory.getLogger(FabricDriver.class);
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     public byte[] encodeTransactionRequest(
             TransactionContext transactionContext, TransactionRequest transactionRequest) {
@@ -571,7 +573,67 @@ public class FabricDriver implements Driver {
             TransactionContext context,
             SubscribeRequest request,
             Connection connection,
-            Driver.Callback callback) {}
+            Driver.Callback callback) {
+        String topic = request.getTopics().get(0).trim();
+        Request req;
+        if ("@cancel".equals(topic)) {
+            String handle = request.getTopics().get(1);
+            req =
+                    Request.newRequest(
+                            FabricType.ConnectionMessage.FABRIC_UNREGISTER_CHAINCODE_EVENT,
+                            handle.getBytes(StandardCharsets.UTF_8));
+        } else {
+            Map<String, String> data = new HashMap<>();
+            data.put("chaincodeId", context.getPath().getResource());
+            data.put("eventName", topic);
+            try {
+                req =
+                        Request.newRequest(
+                                FabricType.ConnectionMessage.FABRIC_REGISTER_CHAINCODE_EVENT,
+                                FabricDriver.objectMapper.writeValueAsBytes(data));
+                ResourceInfo resourceInfo = new ResourceInfo();
+                resourceInfo.getProperties().put("listenerCallBack", context.getCallback());
+                resourceInfo.getProperties().put("path", context.getPath().toString());
+                req.setResourceInfo(resourceInfo);
+            } catch (JsonProcessingException e) {
+                callback.onTransactionResponse(
+                        new TransactionException(
+                                FabricType.TransactionResponseStatus.INTERNAL_ERROR,
+                                e.getMessage()),
+                        null);
+                return;
+            }
+        }
+
+        connection.asyncSend(
+                req,
+                response -> {
+                    if (response.getErrorCode() == FabricType.TransactionResponseStatus.SUCCESS) {
+                        TransactionResponse transactionResponse = new TransactionResponse();
+                        if (req.getType()
+                                == FabricType.ConnectionMessage.FABRIC_REGISTER_CHAINCODE_EVENT) {
+                            String handle = String.valueOf(response.getData());
+                            transactionResponse.setMessage(handle);
+                            List<String> result = new ArrayList<>();
+                            result.add(String.format("path:%s", context.getPath()));
+                            result.add(String.format("topics:%s", topic));
+                            result.add(String.format("raw topics:%s", request.getTopics().get(0)));
+                            result.add(String.format("from:%d", request.getFromBlockNumber()));
+                            result.add(String.format("to:%d", request.getToBlockNumber()));
+                            transactionResponse.setResult(result.stream().toArray(String[]::new));
+                        } else {
+                            String handle = request.getTopics().get(1);
+                            transactionResponse.setMessage(String.format("订阅事件取消成功。%s", handle));
+                        }
+                        callback.onTransactionResponse(null, transactionResponse);
+                    } else {
+                        callback.onTransactionResponse(
+                                new TransactionException(
+                                        response.getErrorCode(), response.getErrorMessage()),
+                                null);
+                    }
+                });
+    }
 
     private void asyncSendTransactionHandleEndorserResponse(
             TransactionContext transactionContext,

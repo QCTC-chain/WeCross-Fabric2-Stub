@@ -4,6 +4,8 @@ import static com.webank.wecross.stub.fabric2.utils.FabricUtils.bytesToLong;
 import static com.webank.wecross.stub.fabric2.utils.FabricUtils.longToBytes;
 import static java.lang.String.format;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import com.webank.wecross.stub.Connection;
@@ -16,9 +18,11 @@ import com.webank.wecross.stub.fabric2.common.FabricType;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.hyperledger.fabric.protos.common.Common;
 import org.hyperledger.fabric.protos.msp.Identities;
 import org.hyperledger.fabric.protos.orderer.Ab;
@@ -112,6 +116,12 @@ public class FabricConnection implements Connection {
             case FabricType.ConnectionMessage.FABRIC_SENDTRANSACTION_ORG_ENDORSER:
                 return handleSendTransactionToOrgsEndorsor(request);
 
+            case FabricType.ConnectionMessage.FABRIC_REGISTER_CHAINCODE_EVENT:
+                return handleRegisterChaincodeEvent(request);
+
+            case FabricType.ConnectionMessage.FABRIC_UNREGISTER_CHAINCODE_EVENT:
+                return handleUnRegisterChaincodeEvent(request);
+
             default:
                 return FabricConnectionResponse.build()
                         .errorCode(FabricType.TransactionResponseStatus.ILLEGAL_REQUEST_TYPE)
@@ -136,6 +146,14 @@ public class FabricConnection implements Connection {
 
             case FabricType.ConnectionMessage.FABRIC_SENDTRANSACTION_ORG_ENDORSER:
                 handleAsyncInstallChaincodeProposal(request, callback);
+                break;
+
+            case FabricType.ConnectionMessage.FABRIC_REGISTER_CHAINCODE_EVENT:
+                handleAsyncRegisterChaincodeEvent(request, callback);
+                break;
+
+            case FabricType.ConnectionMessage.FABRIC_UNREGISTER_CHAINCODE_EVENT:
+                handleAsyncUnRegisterChaincodeEvent(request, callback);
                 break;
             default:
                 callback.onResponse(send(request));
@@ -399,6 +417,108 @@ public class FabricConnection implements Connection {
                                             .FABRIC_INVOKE_CHAINCODE_FAILED)
                             .errorMessage("Install chaincode query to endorser exception: " + e);
         }
+        return response;
+    }
+
+    private void handleAsyncRegisterChaincodeEvent(Request request, Connection.Callback callback) {
+        threadPool.execute(() -> callback.onResponse(handleRegisterChaincodeEvent(request)));
+    }
+
+    private void handleAsyncUnRegisterChaincodeEvent(
+            Request request, Connection.Callback callback) {
+        threadPool.execute(() -> callback.onResponse(handleUnRegisterChaincodeEvent(request)));
+    }
+
+    private Response handleRegisterChaincodeEvent(Request request) {
+        FabricConnectionResponse response;
+        try {
+            Map<String, String> data =
+                    FabricConnection.objectMapper.readValue(
+                            request.getData(), new TypeReference<Map<String, String>>() {});
+            String chaincodeId = data.get("chaincodeId");
+            String eventName = data.get("eventName");
+            ResourceInfo resourceInfo = request.getResourceInfo();
+            String listenEventHandle =
+                    fabricInnerFunction.registerChaincodeEventListener(
+                            Pattern.compile(chaincodeId),
+                            Pattern.compile(eventName),
+                            (handle, blockEvent, chaincodeEvent) -> {
+                                Map<String, Object> result = new HashMap<>();
+
+                                result.put("block_height", blockEvent.getBlockNumber());
+                                result.put("chain_id", "");
+                                result.put("tx_id", chaincodeEvent.getTxId());
+                                result.put("path", resourceInfo.getProperties().get("path"));
+                                result.put("topic", chaincodeEvent.getEventName());
+                                result.put("contract_name", chaincodeEvent.getChaincodeId());
+                                result.put("contract_version", "v1.0.0");
+                                result.put(
+                                        "event_data", String.valueOf(chaincodeEvent.getPayload()));
+                                com.webank.wecross.stub.TransactionContext.Callback callback =
+                                        (com.webank.wecross.stub.TransactionContext.Callback)
+                                                resourceInfo
+                                                        .getProperties()
+                                                        .get("listenerCallBack");
+                                try {
+                                    callback.onSubscribe(
+                                            chaincodeEvent.getChaincodeId(),
+                                            chaincodeEvent.getEventName(),
+                                            FabricConnection.objectMapper.writeValueAsString(
+                                                    result));
+                                } catch (JsonProcessingException e) {
+                                    logger.error("onSubscribe exception: {}", e);
+                                }
+                            });
+            response =
+                    FabricConnectionResponse.build()
+                            .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
+                            .data(listenEventHandle.getBytes(StandardCharsets.UTF_8));
+
+        } catch (Exception e) {
+            response =
+                    FabricConnectionResponse.build()
+                            .errorCode(
+                                    FabricType.TransactionResponseStatus
+                                            .FABRIC_REGISTER_CHAINCODE_EVENT_FAILED)
+                            .errorMessage("register chaincode event exception: " + e);
+        }
+        return response;
+    }
+
+    private Response handleUnRegisterChaincodeEvent(Request request) {
+        FabricConnectionResponse response;
+        try {
+            String listenEventHandle = String.valueOf(request.getData());
+            boolean bOk = fabricInnerFunction.unregisterChaincodeEventListener(listenEventHandle);
+            if (bOk) {
+                response =
+                        FabricConnectionResponse.build()
+                                .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
+                                .errorMessage(
+                                        String.format(
+                                                "unregister chaincode event is successful. %s",
+                                                listenEventHandle))
+                                .data(listenEventHandle.getBytes(StandardCharsets.UTF_8));
+            } else {
+                response =
+                        FabricConnectionResponse.build()
+                                .errorCode(
+                                        FabricType.TransactionResponseStatus
+                                                .FABRIC_UNREGISTER_CHAINCODE_EVENT_FAILED)
+                                .errorMessage(
+                                        "unregister chaincode event unsuccessful. "
+                                                + listenEventHandle)
+                                .data(listenEventHandle.getBytes(StandardCharsets.UTF_8));
+            }
+        } catch (Exception e) {
+            response =
+                    FabricConnectionResponse.build()
+                            .errorCode(
+                                    FabricType.TransactionResponseStatus
+                                            .FABRIC_UNREGISTER_CHAINCODE_EVENT_FAILED)
+                            .errorMessage("unregister chaincode event exception: " + e);
+        }
+
         return response;
     }
 
