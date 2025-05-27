@@ -64,6 +64,7 @@ public class ChaincodeHandler {
     public static String installChaincode(
             String orgUserName,
             HFClient hfClient,
+            String stubPath,
             Channel channel,
             Collection<Peer> peers,
             LifecycleChaincodePackage lifecycleChaincodePackage)
@@ -76,7 +77,7 @@ public class ChaincodeHandler {
 
             logger.info("Creating lifecycleInstallChaincodeRequest");
             LifecycleInstallChaincodeRequest lifecycleInstallChaincodeRequest =
-                    FabricConnectionFactory.buildClient(orgUserName)
+                    FabricConnectionFactory.buildClient(stubPath, orgUserName)
                             .newLifecycleInstallChaincodeRequest();
             lifecycleInstallChaincodeRequest.setLifecycleChaincodePackage(
                     lifecycleChaincodePackage);
@@ -154,6 +155,7 @@ public class ChaincodeHandler {
             String orgUserName,
             HFClient hfClient,
             Channel channel,
+            String stubPath,
             Collection<Peer> peers,
             long sequence,
             String chaincodeName,
@@ -170,7 +172,7 @@ public class ChaincodeHandler {
 
             LifecycleApproveChaincodeDefinitionForMyOrgRequest
                     lifecycleApproveChaincodeDefinitionForMyOrgRequest =
-                            FabricConnectionFactory.buildClient(orgUserName)
+                            FabricConnectionFactory.buildClient(stubPath, orgUserName)
                                     .newLifecycleApproveChaincodeDefinitionForMyOrgRequest();
             lifecycleApproveChaincodeDefinitionForMyOrgRequest.setPackageId(packageId);
             lifecycleApproveChaincodeDefinitionForMyOrgRequest.setChaincodeName(chaincodeName);
@@ -248,6 +250,7 @@ public class ChaincodeHandler {
             String orgUserName,
             HFClient hfClient,
             Channel channel,
+            String stubPath,
             long sequence,
             String chaincodeName,
             String chaincodeVersion,
@@ -263,7 +266,7 @@ public class ChaincodeHandler {
             Collection<ProposalResponse> failed = new LinkedList<>();
 
             LifecycleCommitChaincodeDefinitionRequest lifecycleCommitChaincodeDefinitionRequest =
-                    FabricConnectionFactory.buildClient(orgUserName)
+                    FabricConnectionFactory.buildClient(stubPath, orgUserName)
                             .newLifecycleCommitChaincodeDefinitionRequest();
             lifecycleCommitChaincodeDefinitionRequest.setChaincodeName(chaincodeName);
             lifecycleCommitChaincodeDefinitionRequest.setChaincodeVersion(chaincodeVersion);
@@ -451,6 +454,7 @@ public class ChaincodeHandler {
     public static boolean queryCommitted(
             String orgUserName,
             HFClient hfClient,
+            String stubPath,
             Channel channel,
             String chaincodeName,
             Collection<Peer> peers,
@@ -460,7 +464,7 @@ public class ChaincodeHandler {
         try {
             QueryLifecycleQueryChaincodeDefinitionRequest
                     queryLifecycleQueryChaincodeDefinitionRequest =
-                            FabricConnectionFactory.buildClient(orgUserName)
+                            FabricConnectionFactory.buildClient(stubPath, orgUserName)
                                     .newQueryLifecycleQueryChaincodeDefinitionRequest();
             queryLifecycleQueryChaincodeDefinitionRequest.setChaincodeName(chaincodeName);
 
@@ -518,6 +522,7 @@ public class ChaincodeHandler {
     public static boolean queryInstalled(
             String orgUserName,
             HFClient hfClient,
+            String stubPath,
             Collection<Peer> peers,
             String packageId,
             String chaincodeLabel)
@@ -525,7 +530,7 @@ public class ChaincodeHandler {
         try {
 
             final LifecycleQueryInstalledChaincodeRequest lifecycleQueryInstalledChaincodeRequest =
-                    FabricConnectionFactory.buildClient(orgUserName)
+                    FabricConnectionFactory.buildClient(stubPath, orgUserName)
                             .newLifecycleQueryInstalledChaincodeRequest();
             lifecycleQueryInstalledChaincodeRequest.setPackageID(packageId);
             Collection<LifecycleQueryInstalledChaincodeProposalResponse> responses =

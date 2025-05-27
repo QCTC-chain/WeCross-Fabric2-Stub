@@ -38,7 +38,7 @@ public class SystemChaincodeUtility {
             String[] args,
             boolean ignoreHasDeployed)
             throws Exception {
-        String stubPath = "classpath:" + File.separator + chainPath;
+        String stubPath = "classpath:" + chainPath;
 
         FabricStubConfigParser configFile = new FabricStubConfigParser(stubPath);
         String version = String.valueOf(System.currentTimeMillis() / 1000);
@@ -53,7 +53,8 @@ public class SystemChaincodeUtility {
         String adminName = configFile.getFabricServices().getOrgUserName();
         Account admin =
                 fabricStubFactory.newAccount(
-                        adminName, "classpath:accounts" + File.separator + adminName);
+                        adminName,
+                        stubPath + File.separator + "accounts" + File.separator + adminName);
 
         if (type == Proxy) {
             if (!ignoreHasDeployed && connection.hasProxyDeployed2AllPeers()) {
@@ -107,7 +108,8 @@ public class SystemChaincodeUtility {
 
             Account orgAdmin =
                     fabricStubFactory.newAccount(
-                            accountName, "classpath:accounts" + File.separator + accountName);
+                            accountName,
+                            stubPath + File.separator + "accounts" + File.separator + accountName);
 
             // install
             String currentPackageId =

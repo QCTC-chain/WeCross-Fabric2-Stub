@@ -33,9 +33,9 @@ public class FabricConnectionFactory {
         String stubPath = path;
         try {
             FabricStubConfigParser configFile = new FabricStubConfigParser(stubPath);
-            HFClient hfClient = buildClient(configFile);
-            Map<String, Peer> peersMap = buildPeersMap(hfClient, configFile);
-            Channel channel = buildChannel(hfClient, peersMap, configFile);
+            HFClient hfClient = buildClient(stubPath, configFile);
+            Map<String, Peer> peersMap = buildPeersMap(hfClient, stubPath, configFile);
+            Channel channel = buildChannel(hfClient, stubPath, peersMap, configFile);
             ThreadPoolTaskExecutor threadPool = buildThreadPool(configFile);
 
             return new FabricConnection(
@@ -43,7 +43,7 @@ public class FabricConnectionFactory {
 
         } catch (Exception e) {
             Logger logger = LoggerFactory.getLogger(FabricConnectionFactory.class);
-            logger.error("FabricConnection build exception: " + e);
+            logger.error("FabricConnection build exception 0: " + e);
             return null;
         }
     }
@@ -56,10 +56,11 @@ public class FabricConnectionFactory {
             for (Map.Entry<String, FabricStubConfigParser.Orgs.Org> orgEntry :
                     configFile.getOrgs().entrySet()) {
 
-                HFClient hfClient = buildClient(orgEntry.getValue().getAdminName());
+                HFClient hfClient = buildClient(stubPath, orgEntry.getValue().getAdminName());
                 Map<String, Peer> peersMap =
-                        buildOrgPeersMap(hfClient, orgEntry.getKey(), orgEntry.getValue());
-                Channel channel = buildChannel(hfClient, peersMap, configFile);
+                        buildOrgPeersMap(
+                                hfClient, stubPath, orgEntry.getKey(), orgEntry.getValue());
+                Channel channel = buildChannel(hfClient, stubPath, peersMap, configFile);
                 ThreadPoolTaskExecutor threadPool = buildThreadPool(configFile);
                 FabricConnection fabricConnection =
                         new FabricConnection(
@@ -71,7 +72,7 @@ public class FabricConnectionFactory {
 
         } catch (Exception e) {
             Logger logger = LoggerFactory.getLogger(FabricConnectionFactory.class);
-            logger.error("FabricConnection build exception: " + e);
+            logger.error("FabricConnection build exception 1: " + e);
             return null;
         }
     }
@@ -93,32 +94,35 @@ public class FabricConnectionFactory {
         return threadPool;
     }
 
-    public static HFClient buildClient(FabricStubConfigParser fabricStubConfigParser)
-            throws Exception {
+    public static HFClient buildClient(
+            String stubPath, FabricStubConfigParser fabricStubConfigParser) throws Exception {
         HFClient hfClient = HFClient.createNewInstance();
         hfClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
 
         String orgUserName = fabricStubConfigParser.getFabricServices().getOrgUserName();
         User admin =
                 FabricAccountFactory.buildUser(
-                        orgUserName, "classpath:accounts" + File.separator + orgUserName);
+                        orgUserName,
+                        stubPath + File.separator + "accounts" + File.separator + orgUserName);
         hfClient.setUserContext(admin);
         return hfClient;
     }
 
-    public static HFClient buildClient(String orgUserName) throws Exception {
+    public static HFClient buildClient(String stubPath, String orgUserName) throws Exception {
         HFClient hfClient = HFClient.createNewInstance();
         hfClient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
 
         User admin =
                 FabricAccountFactory.buildUser(
-                        orgUserName, "classpath:accounts" + File.separator + orgUserName);
+                        orgUserName,
+                        stubPath + File.separator + "accounts" + File.separator + orgUserName);
         hfClient.setUserContext(admin);
         return hfClient;
     }
 
     public static Map<String, Peer> buildPeersMap(
-            HFClient client, FabricStubConfigParser fabricStubConfigParser) throws Exception {
+            HFClient client, String stubPath, FabricStubConfigParser fabricStubConfigParser)
+            throws Exception {
         Map<String, Peer> peersMap = new LinkedHashMap<>();
         int index = 0;
         Map<String, FabricStubConfigParser.Orgs.Org> orgs = fabricStubConfigParser.getOrgs();
@@ -130,7 +134,8 @@ public class FabricConnectionFactory {
             String orgUserName = org.getAdminName();
             String mspID =
                     FabricAccountFactory.getMspID(
-                            orgUserName, "classpath:accounts" + File.separator + orgUserName);
+                            orgUserName,
+                            stubPath + File.separator + "accounts" + File.separator + orgUserName);
 
             for (String peerAddress : org.getEndorsers()) {
                 String name = "peer-" + String.valueOf(index);
@@ -152,14 +157,16 @@ public class FabricConnectionFactory {
     }
 
     public static Map<String, Peer> buildOrgPeersMap(
-            HFClient client, String orgName, FabricStubConfigParser.Orgs.Org org) throws Exception {
+            HFClient client, String stubPath, String orgName, FabricStubConfigParser.Orgs.Org org)
+            throws Exception {
         Map<String, Peer> peersMap = new LinkedHashMap<>();
         int index = 0;
 
         String orgUserName = org.getAdminName();
         String mspID =
                 FabricAccountFactory.getMspID(
-                        orgUserName, "classpath:accounts" + File.separator + orgUserName);
+                        orgUserName,
+                        stubPath + File.separator + "accounts" + File.separator + orgUserName);
 
         for (String peerAddress : org.getEndorsers()) {
             String name = "peer-" + String.valueOf(index);
@@ -181,6 +188,7 @@ public class FabricConnectionFactory {
     // Create Channel
     public static Channel buildChannel(
             HFClient client,
+            String stubPath,
             Map<String, Peer> peersMap,
             FabricStubConfigParser fabricStubConfigParser)
             throws Exception {
@@ -190,7 +198,8 @@ public class FabricConnectionFactory {
         String orgUserName = fabricStubConfigParser.getFabricServices().getOrgUserName();
         String mspID =
                 FabricAccountFactory.getMspID(
-                        orgUserName, "classpath:accounts" + File.separator + orgUserName);
+                        orgUserName,
+                        stubPath + File.separator + "accounts" + File.separator + orgUserName);
 
         Orderer orderer = buildOrderer(client, fabricStubConfigParser, mspID);
 

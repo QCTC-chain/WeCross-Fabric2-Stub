@@ -83,7 +83,7 @@ public class ProxyChaincodeDeployment {
     }
 
     public static void check(String chainPath) throws Exception {
-        String stubPath = "classpath:" + File.separator + chainPath;
+        String stubPath = "classpath:" + chainPath;
         FabricStubFactory fabricStubFactory = new FabricStubFactory();
         // newConnection 创建并启动成功
         FabricConnection connection = (FabricConnection) fabricStubFactory.newConnection(stubPath);
@@ -94,7 +94,7 @@ public class ProxyChaincodeDeployment {
     }
 
     public static void deploy(String chainPath) throws Exception {
-        String stubPath = "classpath:" + File.separator + chainPath;
+        String stubPath = "classpath:" + chainPath;
         FabricConnection connection = FabricConnectionFactory.build(stubPath);
 
         String[] args = new String[] {connection.getChannel().getName()};
@@ -103,7 +103,7 @@ public class ProxyChaincodeDeployment {
     }
 
     public static void upgrade(String chainPath) throws Exception {
-        String stubPath = "classpath:" + File.separator + chainPath;
+        String stubPath = "classpath:" + chainPath;
         FabricConnection connection = FabricConnectionFactory.build(stubPath);
         connection.start();
 
