@@ -3,6 +3,13 @@ package com.webank.wecross.stub.fabric2.config;
 import java.util.List;
 
 public class StubConfig {
+    public static class User {
+        public String name;
+        public String mspid;
+        public String crtFile;
+        public String keyFile;
+    }
+
     public static class FabricServices {
         public String channelName;
         public String orgUserName;
@@ -14,7 +21,7 @@ public class StubConfig {
         public String id;
         public String name;
         public String tlsCaFile;
-        public String adminName;
+        public User admin;
         public List<String> endorsers;
     }
 

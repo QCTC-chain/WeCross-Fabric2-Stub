@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 import java.util.StringJoiner;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,13 +73,23 @@ public class FabricStubFactory implements StubFactory {
     @Override
     public void generateAccount(String path, String[] args) {
         try {
+            String chainType = "Fabric2.0";
+            String mspId = "Org1MSP";
+            if (args.length == 2) {
+                chainType = args[0];
+                mspId = args[1];
+            }
             // Generate config file only, copy user cert from crypto-config/
 
             // Write config file
             String accountTemplate =
                     "[account]\n"
-                            + "    type = 'Fabric2.0'\n"
-                            + "    mspid = 'Org1MSP'\n"
+                            + "    type = '"
+                            + chainType
+                            + "'\n"
+                            + "    mspid = '"
+                            + mspId
+                            + "'\n"
                             + "    keystore = 'account.key'\n"
                             + "    signcert = 'account.crt'";
 
@@ -123,46 +132,64 @@ public class FabricStubFactory implements StubFactory {
             fileWriter.close();
         }
     }
-    private String generateTomlStr(String path, String[] args) throws Exception {
-        String chainType = args[0];
-        String chainName = args[1];
-        String stubConfigStr = args[2];
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        StubConfig stubConfig = objectMapper.readValue(stubConfigStr, StubConfig.class);
+    private String generateTomlStr(
+            String path, String chainType, String chainName, StubConfig stubConfig)
+            throws Exception {
 
         StringJoiner toml = new StringJoiner("\n");
 
-        String stubCommon = "[common]\n" +
-                "    name = '" + chainName + "'\n" +
-                "    type = '" + chainType + "'\n";
+        String stubCommon =
+                "[common]\n"
+                        + "    name = '"
+                        + chainName
+                        + "'\n"
+                        + "    type = '"
+                        + chainType
+                        + "'\n";
         toml.add(stubCommon);
 
         File ordererTlsCaFile = new File(path + File.separator + "orderer-tlsca.crt");
         writeContent(ordererTlsCaFile, stubConfig.fabricServices.ordererTlsCaFile);
 
-        String stubFabricServices = "[fabricServices]\n" +
-                "    channelName = '" + stubConfig.fabricServices.channelName + "'\n" +
-                "    orgUserName = '" + stubConfig.fabricServices.orgUserName + "'\n" +
-                "    ordererTlsCaFile = '" + ordererTlsCaFile.getName() + "'\n" +
-                "    ordererAddress = '" + stubConfig.fabricServices.ordererAddress.get(0) + "'\n";
+        String stubFabricServices =
+                "[fabricServices]\n"
+                        + "    channelName = '"
+                        + stubConfig.fabricServices.channelName
+                        + "'\n"
+                        + "    orgUserName = '"
+                        + stubConfig.fabricServices.orgUserName
+                        + "'\n"
+                        + "    ordererTlsCaFile = '"
+                        + ordererTlsCaFile.getName()
+                        + "'\n"
+                        + "    ordererAddress = '"
+                        + stubConfig.fabricServices.ordererAddress.get(0)
+                        + "'\n";
         toml.add(stubFabricServices);
 
         StringJoiner stubOrgs = new StringJoiner("\n");
         stubOrgs.add("[orgs]");
-        String stubOrgTemplate = "    [orgs.%s]\n" +
-                "        tlsCaFile = '%s'\n" +
-                "        adminName = '%s'\n" +
-                "        endorsers = %s\n";
-        for(StubConfig.Org org: stubConfig.orgs) {
+        String stubOrgTemplate =
+                "    [orgs.%s]\n"
+                        + "        tlsCaFile = '%s'\n"
+                        + "        adminName = '%s'\n"
+                        + "        endorsers = %s\n";
+        for (StubConfig.Org org : stubConfig.orgs) {
             String orgId = org.id;
             File tlsCaFile = new File(path + File.separator + String.format("%s-tlsca.crt", orgId));
             writeContent(tlsCaFile, org.tlsCaFile);
             StringJoiner endorsers = new StringJoiner(",");
-            for(String endorser: org.endorsers) {
+            for (String endorser : org.endorsers) {
                 endorsers.add("'" + endorser + "'");
             }
-            stubOrgs.add(String.format(stubOrgTemplate, orgId, tlsCaFile.getName(), org.adminName, "[" + endorsers + "]"));
+            stubOrgs.add(
+                    String.format(
+                            stubOrgTemplate,
+                            orgId,
+                            tlsCaFile.getName(),
+                            org.admin.name,
+                            "[" + endorsers + "]"));
         }
         toml.add(stubOrgs.toString());
         return toml.toString();
@@ -171,10 +198,20 @@ public class FabricStubFactory implements StubFactory {
     @Override
     public void generateConnection(String path, String[] args) {
         try {
-            String chainName = new File(path).getName();
-            String stubTomlContent = generateTomlStr(path, args);;
+
+            String chainType = args[0];
+            String chainName = args[1];
+            String stubConfigStr = args[2];
+            ObjectMapper objectMapper = new ObjectMapper();
+            StubConfig stubConfig = objectMapper.readValue(stubConfigStr, StubConfig.class);
+
+            // String chainName = new File(path).getName();
+            String stubTomlContent = generateTomlStr(path, chainType, chainName, stubConfig);
             File confFile = new File(path + File.separator + "stub.toml");
             writeContent(confFile, stubTomlContent);
+
+            // Generate accounts
+            generateAccount(path, chainType, stubConfig);
 
             // Generate proxy and hub chaincodes
             generateProxyChaincodes(path);
@@ -188,6 +225,7 @@ public class FabricStubFactory implements StubFactory {
                             + "\"\nPlease copy cert file and edit stub.toml");
         } catch (Exception e) {
             logger.error("Exception: ", e);
+            throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -259,6 +297,25 @@ public class FabricStubFactory implements StubFactory {
         } catch (Exception e) {
             System.out.println(e);
             throw new RuntimeException(e);
+        }
+    }
+
+    private void generateAccount(String path, String chainType, StubConfig stubConfig)
+            throws IOException {
+        for (StubConfig.Org org : stubConfig.orgs) {
+            File adminPath =
+                    new File(path + File.separator + "accounts" + File.separator + org.admin.name);
+            if (!adminPath.exists()) {
+                adminPath.mkdirs();
+            }
+
+            String[] args2 = new String[] {chainType, org.admin.mspid};
+            generateAccount(adminPath.getPath(), args2);
+
+            File crtFile = new File(adminPath.getPath() + File.separator + "account.crt");
+            writeContent(crtFile, org.admin.crtFile);
+            File keyFile = new File(adminPath.getPath() + File.separator + "account.key");
+            writeContent(keyFile, org.admin.keyFile);
         }
     }
 
