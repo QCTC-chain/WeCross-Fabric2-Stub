@@ -8,15 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.webank.wecross.stub.*;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.ApproveChaincodeRequest;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.CommitChaincodeRequest;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.InstallChaincodeRequest;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.InstallCommand;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.InstantiateChaincodeRequest;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.InstantiateCommand;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.QueryCommittedRequest;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.UpgradeChaincodeRequest;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.UpgradeCommand;
+import com.webank.wecross.stub.fabric2.FabricCustomCommand.*;
 import com.webank.wecross.stub.fabric2.account.FabricAccount;
 import com.webank.wecross.stub.fabric2.account.FabricAccountFactory;
 import com.webank.wecross.stub.fabric2.common.FabricType;
@@ -1090,6 +1082,9 @@ public class FabricDriver implements Driver {
             case UpgradeCommand.NAME:
                 handleUpgradeCommand(args, account, blockManager, connection, callback);
                 break;
+            case RegisterContractCommand.NAME:
+                handleRegisterExistingContract(path.getResource(), connection, callback);
+                break;
             default:
                 callback.onResponse(new Exception("Unsupported command for Fabric plugin"), null);
                 break;
@@ -1275,6 +1270,25 @@ public class FabricDriver implements Driver {
 
         } catch (Exception e) {
             callback.onResponse(e, "Failed: " + e.getMessage());
+        }
+    }
+
+    private void handleRegisterExistingContract(
+            String chaincodeName, Connection connection, CustomCommandCallback callback) {
+        if (connection instanceof FabricConnection) {
+            FabricConnection fabricConnection = (FabricConnection) connection;
+            fabricConnection.updateChaincodeMap();
+            Map<String, ChaincodeResource> resourceMap = fabricConnection.getChaincodeMap();
+
+            ChaincodeResource resource = resourceMap.get(chaincodeName);
+
+            Map<Object, Object> resourceProperties = new HashMap<>();
+            resourceProperties.put("CHAIN_ID", fabricConnection.getChannel().getName());
+            resourceProperties.put("CONTRACT_NAME", resource.getName());
+            resourceProperties.put("CONTRACT_ADDRESS", resource.getName());
+            resourceProperties.put("CONTRACT_VERSION", resource.getVersion());
+            resourceProperties.put("CONTRACT_RUNTIME_TYPE", "GO");
+            callback.onResponse(null, resourceProperties);
         }
     }
 
