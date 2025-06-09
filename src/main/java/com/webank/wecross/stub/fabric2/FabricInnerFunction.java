@@ -126,4 +126,24 @@ public class FabricInnerFunction {
         }
         return ok;
     }
+
+    public String registerBlockEventListener(BlockListener blockListener) throws Exception {
+        String handle;
+        try {
+            handle = this.channel.registerBlockListener(blockListener);
+        } catch (InvalidArgumentException e) {
+            throw new Exception(e.getMessage());
+        }
+        return handle;
+    }
+
+    public boolean unRegisterBlockEventListener(String handle) throws Exception {
+        boolean ok;
+        try {
+            ok = this.channel.unregisterBlockListener(handle);
+        } catch (InvalidArgumentException e) {
+            throw new Exception(e.getMessage());
+        }
+        return ok;
+    }
 }
