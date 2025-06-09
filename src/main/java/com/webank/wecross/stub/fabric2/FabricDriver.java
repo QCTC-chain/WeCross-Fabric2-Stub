@@ -604,7 +604,7 @@ public class FabricDriver implements Driver {
                         TransactionResponse transactionResponse = new TransactionResponse();
                         if (req.getType()
                                 == FabricType.ConnectionMessage.FABRIC_REGISTER_CHAINCODE_EVENT) {
-                            String handle = String.valueOf(response.getData());
+                            String handle = new String(response.getData(), StandardCharsets.UTF_8);
                             transactionResponse.setMessage(handle);
                             List<String> result = new ArrayList<>();
                             result.add(String.format("path:%s", context.getPath()));

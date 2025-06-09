@@ -488,7 +488,7 @@ public class FabricConnection implements Connection {
     private Response handleUnRegisterChaincodeEvent(Request request) {
         FabricConnectionResponse response;
         try {
-            String listenEventHandle = String.valueOf(request.getData());
+            String listenEventHandle = new String(request.getData(), StandardCharsets.UTF_8);
             boolean bOk = fabricInnerFunction.unregisterChaincodeEventListener(listenEventHandle);
             if (bOk) {
                 response =
