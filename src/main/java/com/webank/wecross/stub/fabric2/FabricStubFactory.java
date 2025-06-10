@@ -1,5 +1,6 @@
 package com.webank.wecross.stub.fabric2;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.Connection;
@@ -7,13 +8,12 @@ import com.webank.wecross.stub.Driver;
 import com.webank.wecross.stub.Stub;
 import com.webank.wecross.stub.StubFactory;
 import com.webank.wecross.stub.WeCrossContext;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.InstallCommand;
-import com.webank.wecross.stub.fabric2.FabricCustomCommand.InstantiateCommand;
 import com.webank.wecross.stub.fabric2.account.FabricAccountFactory;
 import com.webank.wecross.stub.fabric2.config.StubConfig;
-import com.webank.wecross.stub.fabric2.performance.PerformanceTest;
-import com.webank.wecross.stub.fabric2.performance.ProxyTest;
-import com.webank.wecross.stub.fabric2.proxy.ProxyChaincodeDeployment;
+import com.webank.wecross.stub.fabric2.rpc.FabricPRCRest;
+import com.webank.wecross.stub.fabric2.rpc.methods.Response;
+import com.webank.wecross.stub.fabric2.rpc.service.FabricRPCService;
+import com.webank.wecross.stub.fabric2.rpc.service.FabricService;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,10 +31,7 @@ public class FabricStubFactory implements StubFactory {
     private static Logger logger = LoggerFactory.getLogger(FabricStubFactory.class);
 
     @Override
-    public void init(WeCrossContext context) {
-        context.registerCommand(InstallCommand.NAME, InstallCommand.DESCRIPTION);
-        context.registerCommand(InstantiateCommand.NAME, InstantiateCommand.DESCRIPTION);
-    }
+    public void init(WeCrossContext context) {}
 
     @Override
     public Driver newDriver() {
@@ -49,7 +46,6 @@ public class FabricStubFactory implements StubFactory {
 
             // Check proxy chaincode
             if (!fabricConnection.hasProxyDeployed2AllPeers()) {
-                System.out.println(ProxyChaincodeDeployment.getUsage(path));
                 throw new Exception("WeCrossProxy has not been deployed to all org");
             }
 
@@ -63,11 +59,6 @@ public class FabricStubFactory implements StubFactory {
     @Override
     public Account newAccount(Map<String, Object> properties) {
         return FabricAccountFactory.build(properties);
-    }
-
-    // Used by default account
-    public Account newAccount(String name, String path) {
-        return FabricAccountFactory.build(name, path);
     }
 
     @Override
@@ -133,9 +124,7 @@ public class FabricStubFactory implements StubFactory {
         }
     }
 
-    private String generateTomlStr(
-            String path, String chainType, String chainName, StubConfig stubConfig)
-            throws Exception {
+    private String generateTomlStr(String chainType, String chainName) {
 
         StringJoiner toml = new StringJoiner("\n");
 
@@ -148,70 +137,41 @@ public class FabricStubFactory implements StubFactory {
                         + chainType
                         + "'\n";
         toml.add(stubCommon);
-
-        File ordererTlsCaFile = new File(path + File.separator + "orderer-tlsca.crt");
-        writeContent(ordererTlsCaFile, stubConfig.fabricServices.ordererTlsCaFile);
-
-        String stubFabricServices =
-                "[fabricServices]\n"
-                        + "    channelName = '"
-                        + stubConfig.fabricServices.channelName
-                        + "'\n"
-                        + "    orgUserName = '"
-                        + stubConfig.fabricServices.orgUserName
-                        + "'\n"
-                        + "    ordererTlsCaFile = '"
-                        + ordererTlsCaFile.getName()
-                        + "'\n"
-                        + "    ordererAddress = '"
-                        + stubConfig.fabricServices.ordererAddress.get(0)
-                        + "'\n";
-        toml.add(stubFabricServices);
-
-        StringJoiner stubOrgs = new StringJoiner("\n");
-        stubOrgs.add("[orgs]");
-        String stubOrgTemplate =
-                "    [orgs.%s]\n"
-                        + "        tlsCaFile = '%s'\n"
-                        + "        adminName = '%s'\n"
-                        + "        endorsers = %s\n";
-        for (StubConfig.Org org : stubConfig.orgs) {
-            String orgId = org.id;
-            File tlsCaFile = new File(path + File.separator + String.format("%s-tlsca.crt", orgId));
-            writeContent(tlsCaFile, org.tlsCaFile);
-            StringJoiner endorsers = new StringJoiner(",");
-            for (String endorser : org.endorsers) {
-                endorsers.add("'" + endorser + "'");
-            }
-            stubOrgs.add(
-                    String.format(
-                            stubOrgTemplate,
-                            orgId,
-                            tlsCaFile.getName(),
-                            org.admin.name,
-                            "[" + endorsers + "]"));
-        }
-        toml.add(stubOrgs.toString());
         return toml.toString();
     }
 
     @Override
     public void generateConnection(String path, String[] args) {
         try {
-
             String chainType = args[0];
             String chainName = args[1];
             String stubConfigStr = args[2];
+            String mqConfigStr = args[3];
             ObjectMapper objectMapper = new ObjectMapper();
-            StubConfig stubConfig = objectMapper.readValue(stubConfigStr, StubConfig.class);
-
-            // String chainName = new File(path).getName();
-            String stubTomlContent = generateTomlStr(path, chainType, chainName, stubConfig);
+            Map<String, Object> stubConfig =
+                    objectMapper.readValue(
+                            stubConfigStr, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> mqConfig =
+                    objectMapper.readValue(
+                            mqConfigStr, new TypeReference<Map<String, Object>>() {});
+            String stubTomlContent = generateTomlStr(chainType, chainName);
             File confFile = new File(path + File.separator + "stub.toml");
             writeContent(confFile, stubTomlContent);
+            stubConfig.put("mq", mqConfig.get("mq"));
 
-            // Generate accounts
-            generateAccount(path, chainType, stubConfig);
+            // 调用 fabric2-api-service api 接口
+            FabricService fabricService = new FabricRPCService();
+            fabricService.init();
+            FabricPRCRest fabricPRCRest = new FabricPRCRest(fabricService);
+            Response response =
+                    fabricPRCRest
+                            .InitConfiguration(objectMapper.writeValueAsString(stubConfig))
+                            .send();
+            if (response.getErrorCode() != 0) {
+                System.err.println(
+                        "FAIL: Chain \"" + chainName + "\" Init configuration failed. \"");
+                return;
+            }
 
             // Generate proxy and hub chaincodes
             generateProxyChaincodes(path);
@@ -303,19 +263,21 @@ public class FabricStubFactory implements StubFactory {
     private void generateAccount(String path, String chainType, StubConfig stubConfig)
             throws IOException {
         for (StubConfig.Org org : stubConfig.orgs) {
-            File adminPath =
-                    new File(path + File.separator + "accounts" + File.separator + org.admin.name);
-            if (!adminPath.exists()) {
-                adminPath.mkdirs();
+            for (StubConfig.User user : org.users) {
+                File adminPath =
+                        new File(path + File.separator + "accounts" + File.separator + user.name);
+                if (!adminPath.exists()) {
+                    adminPath.mkdirs();
+                }
+
+                String[] args2 = new String[] {chainType, org.mspid};
+                generateAccount(adminPath.getPath(), args2);
+
+                File crtFile = new File(adminPath.getPath() + File.separator + "account.crt");
+                writeContent(crtFile, user.crt);
+                File keyFile = new File(adminPath.getPath() + File.separator + "account.key");
+                writeContent(keyFile, user.key);
             }
-
-            String[] args2 = new String[] {chainType, org.admin.mspid};
-            generateAccount(adminPath.getPath(), args2);
-
-            File crtFile = new File(adminPath.getPath() + File.separator + "account.crt");
-            writeContent(crtFile, org.admin.crtFile);
-            File keyFile = new File(adminPath.getPath() + File.separator + "account.key");
-            writeContent(keyFile, org.admin.keyFile);
         }
     }
 
@@ -326,9 +288,9 @@ public class FabricStubFactory implements StubFactory {
         System.out.println(
                 "    java -cp conf/:lib/*:plugin/* com.webank.wecross.stub.fabric2.proxy.ProxyChaincodeDeployment ");
         System.out.println("To performance test, please run the command for more info:");
-        System.out.println(
-                "    Pure:    java -cp conf/:lib/*:plugin/* " + PerformanceTest.class.getName());
-        System.out.println(
-                "    Proxy:   java -cp conf/:lib/*:plugin/* " + ProxyTest.class.getName());
+        // System.out.println(
+        //        "    Pure:    java -cp conf/:lib/*:plugin/* " + PerformanceTest.class.getName());
+        // System.out.println(
+        //        "    Proxy:   java -cp conf/:lib/*:plugin/* " + ProxyTest.class.getName());
     }
 }

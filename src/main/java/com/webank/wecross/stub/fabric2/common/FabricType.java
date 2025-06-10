@@ -50,33 +50,6 @@ public class FabricType {
         public static final int FABRIC_UNREGISTER_CHAINCODE_EVENT_FAILED = 3105;
     }
 
-    public static org.hyperledger.fabric.sdk.TransactionRequest.Type stringTochainCodeType(
-            String type) throws Exception {
-        switch (type) {
-            case "JAVA":
-                return org.hyperledger.fabric.sdk.TransactionRequest.Type.JAVA;
-            case "GO_LANG":
-                return org.hyperledger.fabric.sdk.TransactionRequest.Type.GO_LANG;
-            case "NONE":
-                return org.hyperledger.fabric.sdk.TransactionRequest.Type.NODE;
-            default:
-                throw new Exception("Unsupported chaincode language: " + type);
-        }
-    }
-
-    public static String chainCodeTypeToString(
-            org.hyperledger.fabric.sdk.TransactionRequest.Type type) {
-        switch (type) {
-            case JAVA:
-                return "JAVA";
-            case GO_LANG:
-                return "GO_LANG";
-            case NODE:
-            default:
-                return "NONE";
-        }
-    }
-
     public static final String ORG_NAME_DEF = "orgName_w";
     public static final String ORG_MSP_DEF = "orgMsp_w";
 }

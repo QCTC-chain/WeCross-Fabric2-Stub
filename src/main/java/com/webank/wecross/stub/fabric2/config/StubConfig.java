@@ -4,25 +4,29 @@ import java.util.List;
 
 public class StubConfig {
     public static class User {
+        public boolean isAdmin;
         public String name;
-        public String mspid;
-        public String crtFile;
-        public String keyFile;
+        public String crt;
+        public String key;
+    }
+
+    public static class Peer {
+        public String tlsCa;
+        public String address;
     }
 
     public static class FabricServices {
         public String channelName;
         public String orgUserName;
-        public String ordererTlsCaFile;
-        public List<String> ordererAddress;
+        public String ordererTlsCa;
+        public String ordererAddress;
     }
 
     public static class Org {
-        public String id;
         public String name;
-        public String tlsCaFile;
-        public User admin;
-        public List<String> endorsers;
+        public String mspid;
+        public List<Peer> peers;
+        public List<User> users;
     }
 
     public FabricServices fabricServices;

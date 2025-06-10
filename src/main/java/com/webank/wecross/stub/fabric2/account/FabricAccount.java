@@ -2,41 +2,14 @@ package com.webank.wecross.stub.fabric2.account;
 
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.fabric2.common.FabricType;
-import org.hyperledger.fabric.sdk.User;
-import org.hyperledger.fabric.sdk.exception.CryptoException;
-import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
-import org.hyperledger.fabric.sdk.identity.SigningIdentity;
-import org.hyperledger.fabric.sdk.security.CryptoSuite;
 
 public class FabricAccount implements Account {
     private int keyID;
     private boolean isDefault;
 
-    private User user;
-    private SigningIdentity signer;
-
-    public FabricAccount(User user) throws Exception {
-        this.setUser(user);
-
-        // ECDSA secp256r1
-        this.signer =
-                ExtendedIdentityFactory.getSigningIdentity(
-                        CryptoSuite.Factory.getCryptoSuite(), user);
-    }
-
-    public byte[] sign(byte[] message) throws Exception {
-        return signer.sign(message);
-    }
-
-    // Only in fabric stub
-    public boolean verifySign(byte[] message, byte[] sig)
-            throws CryptoException, InvalidArgumentException {
-        return signer.verifySignature(message, sig);
-    }
-
     @Override
     public String getName() {
-        return user.getName();
+        return "";
     }
 
     @Override
@@ -46,25 +19,17 @@ public class FabricAccount implements Account {
 
     @Override
     public String getIdentity() {
-        return signer.createSerializedIdentity().getIdBytes().toStringUtf8();
+        return "";
     }
 
     @Override
     public int getKeyID() {
-        return keyID;
+        return this.keyID;
     }
 
     @Override
     public boolean isDefault() {
-        return isDefault;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public User getUser() {
-        return this.user;
+        return true;
     }
 
     public void setKeyID(int keyID) {
