@@ -285,7 +285,9 @@ public class FabricDriver implements Driver {
             Account account,
             BlockManager blockManager,
             Connection connection,
-            CustomCommandCallback callback) {}
+            CustomCommandCallback callback) {
+        callback.onResponse(new Exception("not implement"), null);
+    }
 
     @Override
     public byte[] accountSign(Account account, byte[] message) {
