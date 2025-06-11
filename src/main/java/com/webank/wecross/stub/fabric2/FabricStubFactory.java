@@ -124,7 +124,8 @@ public class FabricStubFactory implements StubFactory {
         }
     }
 
-    private String generateTomlStr(String chainType, String chainName) {
+    private String generateTomlStr(
+            String chainType, String chainName, Map<String, Object> stubConfig) {
 
         StringJoiner toml = new StringJoiner("\n");
 
@@ -137,6 +138,20 @@ public class FabricStubFactory implements StubFactory {
                         + chainType
                         + "'\n";
         toml.add(stubCommon);
+
+        Map<String, String> fabricServiceObject =
+                (Map<String, String>) stubConfig.get("fabricServices");
+
+        String fabricService =
+                "[fabricServices]\n"
+                        + "    channelName = '"
+                        + fabricServiceObject.get("channelName")
+                        + "'\n"
+                        + "    orgUserName = '"
+                        + fabricServiceObject.get("orgUserName")
+                        + "'";
+        toml.add(fabricService);
+
         return toml.toString();
     }
 
@@ -154,7 +169,7 @@ public class FabricStubFactory implements StubFactory {
             Map<String, Object> mqConfig =
                     objectMapper.readValue(
                             mqConfigStr, new TypeReference<Map<String, Object>>() {});
-            String stubTomlContent = generateTomlStr(chainType, chainName);
+            String stubTomlContent = generateTomlStr(chainType, chainName, stubConfig);
             File confFile = new File(path + File.separator + "stub.toml");
             writeContent(confFile, stubTomlContent);
             stubConfig.put("mq", mqConfig.get("mq"));
@@ -165,7 +180,7 @@ public class FabricStubFactory implements StubFactory {
             FabricPRCRest fabricPRCRest = new FabricPRCRest(fabricService);
             Response response =
                     fabricPRCRest
-                            .InitConfiguration(objectMapper.writeValueAsString(stubConfig))
+                            .initConfiguration(objectMapper.writeValueAsString(stubConfig))
                             .send();
             if (response.getErrorCode() != 0) {
                 System.err.println(

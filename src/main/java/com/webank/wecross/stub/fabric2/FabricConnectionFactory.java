@@ -17,9 +17,8 @@ public class FabricConnectionFactory {
     public static FabricConnection build(String path) {
         try {
             ThreadPoolTaskExecutor threadPool = buildThreadPool();
-            return new FabricConnection(threadPool);
+            return new FabricConnection(path, threadPool);
         } catch (Exception e) {
-            Logger logger = LoggerFactory.getLogger(FabricConnectionFactory.class);
             logger.error("FabricConnection build exception 0: " + e);
             return null;
         }

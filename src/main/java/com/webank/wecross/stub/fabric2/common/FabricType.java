@@ -2,7 +2,6 @@ package com.webank.wecross.stub.fabric2.common;
 
 public class FabricType {
     public static final String STUB_NAME = "Fabric2.0";
-    public static final String FABRIC_VERIFIER = "VERIFIER";
 
     public static final class Account {
         public static final String FABRIC_ACCOUNT = STUB_NAME;
@@ -11,28 +10,12 @@ public class FabricType {
     public static final class ConnectionMessage {
         // Connection send message type
         public static final int FABRIC_CALL = 2001;
-        public static final int FABRIC_SENDTRANSACTION_ENDORSER = 2002;
-        public static final int FABRIC_SENDTRANSACTION_ORDERER = 2003;
-        public static final int FABRIC_GET_BLOCK_NUMBER = 2004;
-        public static final int FABRIC_GET_BLOCK = 2005;
-        public static final int FABRIC_GET_TRANSACTION = 2006;
-        public static final int FABRIC_SENDTRANSACTION_ORG_ENDORSER = 2007;
-        public static final int FABRIC_REGISTER_CHAINCODE_EVENT = 2008;
-        public static final int FABRIC_UNREGISTER_CHAINCODE_EVENT = 2009;
-    }
-
-    public static class Resource {
-        public static final String RESOURCE_TYPE_FABRIC_CONTRACT = "FABRIC_CONTRACT";
-    }
-
-    public static class ResourceInfoProperty {
-        // ResourceInfo properties name
-        public static final String CHANNEL_NAME = "CHANNEL_NAME";
-        public static final String CHAINCODE_NAME = "CHAINCODE_NAME";
-        public static final String CHAINCODE_VERSION = "CHAINCODE_VERSION";
-        public static final String CHAINCODE_TYPE = "CHAINCODE_TYPE";
-        public static final String PROPOSAL_WAIT_TIME = "PROPOSAL_WAIT_TIME";
-        public static final String ORG_NAMES = "ORG_NAMES";
+        public static final int FABRIC_SENDTRANSACTION = 2002;
+        public static final int FABRIC_GET_BLOCK_NUMBER = 2003;
+        public static final int FABRIC_GET_BLOCK = 2004;
+        public static final int FABRIC_GET_TRANSACTION = 2005;
+        public static final int FABRIC_SUBSCRIBE_CONTRACT = 2006;
+        public static final int FABRIC_UNSUBSCRIBE_CONTRACT = 2007;
     }
 
     public static class TransactionResponseStatus {
@@ -49,7 +32,4 @@ public class FabricType {
         public static final int FABRIC_REGISTER_CHAINCODE_EVENT_FAILED = 3104;
         public static final int FABRIC_UNREGISTER_CHAINCODE_EVENT_FAILED = 3105;
     }
-
-    public static final String ORG_NAME_DEF = "orgName_w";
-    public static final String ORG_MSP_DEF = "orgMsp_w";
 }
