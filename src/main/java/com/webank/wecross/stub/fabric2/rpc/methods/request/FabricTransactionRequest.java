@@ -1,17 +1,27 @@
 package com.webank.wecross.stub.fabric2.rpc.methods.request;
 
 public class FabricTransactionRequest {
+    private String chainName;
     private String channelId;
     private String chaincodeId;
     private String method;
     private Object[] args;
 
     public FabricTransactionRequest(
-            String channelId, String chaincodeId, String method, Object[] args) {
+            String chainName, String channelId, String chaincodeId, String method, Object[] args) {
+        this.chainName = chainName;
         this.channelId = channelId;
         this.chaincodeId = chaincodeId;
         this.method = method;
         this.args = args;
+    }
+
+    public void setChainName(String chainName) {
+        this.chainName = chainName;
+    }
+
+    public String getChainName() {
+        return this.chainName;
     }
 
     public void setChannelId(String channelId) {

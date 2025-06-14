@@ -11,11 +11,12 @@ public interface FabricRPC {
 
     RemoteCall<Response> instantiateRemoteService();
 
-    RemoteCall<Response> getBlock(String channelId, long blockNumber, boolean onlyHeader);
+    RemoteCall<Response> getBlock(
+            String chainName, String channelId, long blockNumber, boolean onlyHeader);
 
-    RemoteCall<ContractsResponse> getContractList(String channelId);
+    RemoteCall<ContractsResponse> getContractList(String chainName, String channelId);
 
-    RemoteCall<Response> getContractInfo(String channelId, String chaincodeId);
+    RemoteCall<Response> getContractInfo(String chainName, String channelId, String chaincodeId);
 
     RemoteCall<Response> subscribeContractEvent(SubscribeEventRequest subscribeEventRequest);
 
@@ -25,5 +26,5 @@ public interface FabricRPC {
 
     RemoteCall<Response> sendTransaction(FabricTransactionRequest transactionRequest);
 
-    RemoteCall<Response> getTransactionInfo(String channelId, String txId);
+    RemoteCall<Response> getTransactionInfo(String chainName, String channelId, String txId);
 }

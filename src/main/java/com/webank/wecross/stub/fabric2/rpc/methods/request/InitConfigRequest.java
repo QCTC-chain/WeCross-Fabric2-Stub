@@ -37,6 +37,7 @@ public class InitConfigRequest {
         public String group;
     }
 
+    public String chainName;
     public FabricService fabricServices;
     public List<Org> orgs;
     public MQ mq;

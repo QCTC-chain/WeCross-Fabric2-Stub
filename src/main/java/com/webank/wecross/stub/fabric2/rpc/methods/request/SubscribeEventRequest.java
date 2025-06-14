@@ -1,6 +1,7 @@
 package com.webank.wecross.stub.fabric2.rpc.methods.request;
 
 public class SubscribeEventRequest {
+    private String chainName;
     private String channelId;
     private String chaincodeId;
     private String topic;
@@ -8,12 +9,26 @@ public class SubscribeEventRequest {
     private long endBlock;
 
     public SubscribeEventRequest(
-            String channelId, String chaincodeId, String topic, long fromBlock, long endBlock) {
+            String chainName,
+            String channelId,
+            String chaincodeId,
+            String topic,
+            long fromBlock,
+            long endBlock) {
+        this.chainName = chainName;
         this.chaincodeId = chaincodeId;
         this.channelId = channelId;
         this.topic = topic;
         this.fromBlock = fromBlock;
         this.endBlock = endBlock;
+    }
+
+    public void setChainName(String chainName) {
+        this.chainName = chainName;
+    }
+
+    public String getChainName() {
+        return this.chainName;
     }
 
     public void setChannelId(String channelId) {
