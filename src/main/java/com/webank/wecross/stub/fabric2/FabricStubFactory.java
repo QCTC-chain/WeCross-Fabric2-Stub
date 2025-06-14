@@ -9,11 +9,6 @@ import com.webank.wecross.stub.Stub;
 import com.webank.wecross.stub.StubFactory;
 import com.webank.wecross.stub.WeCrossContext;
 import com.webank.wecross.stub.fabric2.account.FabricAccountFactory;
-import com.webank.wecross.stub.fabric2.config.StubConfig;
-import com.webank.wecross.stub.fabric2.rpc.FabricPRCRest;
-import com.webank.wecross.stub.fabric2.rpc.methods.Response;
-import com.webank.wecross.stub.fabric2.rpc.service.FabricRPCService;
-import com.webank.wecross.stub.fabric2.rpc.service.FabricService;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -125,7 +120,10 @@ public class FabricStubFactory implements StubFactory {
     }
 
     private String generateTomlStr(
-            String chainType, String chainName, Map<String, Object> stubConfig) {
+            String chainType,
+            String chainName,
+            Map<String, Object> stubConfig,
+            Map<String, Object> mqConfig) {
 
         StringJoiner toml = new StringJoiner("\n");
 
@@ -149,8 +147,34 @@ public class FabricStubFactory implements StubFactory {
                         + "'\n"
                         + "    orgUserName = '"
                         + fabricServiceObject.get("orgUserName")
-                        + "'";
+                        + "'\n";
         toml.add(fabricService);
+
+        String mq =
+                "[mq]\n"
+                        + "    # kafka/rabbitmq/rocketmq\n"
+                        + "    type = '"
+                        + mqConfig.get("type")
+                        + "'\n"
+                        + "    host = '"
+                        + mqConfig.get("host")
+                        + "'\n"
+                        + "    port = "
+                        + mqConfig.get("port")
+                        + "\n"
+                        + "    userName = '"
+                        + mqConfig.get("userName")
+                        + "'\n"
+                        + "    password = '"
+                        + mqConfig.get("password")
+                        + "'\n"
+                        + "    topic = '"
+                        + mqConfig.get("topic")
+                        + "'\n"
+                        + "    group = '"
+                        + mqConfig.get("group")
+                        + "'";
+        toml.add(mq);
 
         return toml.toString();
     }
@@ -169,24 +193,17 @@ public class FabricStubFactory implements StubFactory {
             Map<String, Object> mqConfig =
                     objectMapper.readValue(
                             mqConfigStr, new TypeReference<Map<String, Object>>() {});
-            String stubTomlContent = generateTomlStr(chainType, chainName, stubConfig);
+            String stubTomlContent =
+                    generateTomlStr(
+                            chainType,
+                            chainName,
+                            stubConfig,
+                            (Map<String, Object>) mqConfig.get("mq"));
             File confFile = new File(path + File.separator + "stub.toml");
             writeContent(confFile, stubTomlContent);
-            stubConfig.put("mq", mqConfig.get("mq"));
 
-            // 调用 fabric2-api-service api 接口
-            FabricService fabricService = new FabricRPCService();
-            fabricService.init();
-            FabricPRCRest fabricPRCRest = new FabricPRCRest(fabricService);
-            Response response =
-                    fabricPRCRest
-                            .initConfiguration(objectMapper.writeValueAsString(stubConfig))
-                            .send();
-            if (response.getErrorCode() != 0) {
-                System.err.println(
-                        "FAIL: Chain \"" + chainName + "\" Init configuration failed. \"");
-                return;
-            }
+            // File fabric2ConfigFile = new File(path + File.separator + "config.yaml");
+            StubConfigGenerator.generateConfig(stubConfigStr, path);
 
             // Generate proxy and hub chaincodes
             generateProxyChaincodes(path);
@@ -272,27 +289,6 @@ public class FabricStubFactory implements StubFactory {
         } catch (Exception e) {
             System.out.println(e);
             throw new RuntimeException(e);
-        }
-    }
-
-    private void generateAccount(String path, String chainType, StubConfig stubConfig)
-            throws IOException {
-        for (StubConfig.Org org : stubConfig.orgs) {
-            for (StubConfig.User user : org.users) {
-                File adminPath =
-                        new File(path + File.separator + "accounts" + File.separator + user.name);
-                if (!adminPath.exists()) {
-                    adminPath.mkdirs();
-                }
-
-                String[] args2 = new String[] {chainType, org.mspid};
-                generateAccount(adminPath.getPath(), args2);
-
-                File crtFile = new File(adminPath.getPath() + File.separator + "account.crt");
-                writeContent(crtFile, user.crt);
-                File keyFile = new File(adminPath.getPath() + File.separator + "account.key");
-                writeContent(keyFile, user.key);
-            }
         }
     }
 
