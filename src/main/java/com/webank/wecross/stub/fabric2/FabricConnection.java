@@ -82,6 +82,8 @@ public class FabricConnection implements Connection {
                 return handleSubscribeContractEvent(request);
             case FabricType.ConnectionMessage.FABRIC_UNSUBSCRIBE_CONTRACT:
                 return handleUnSubscribeContractEvent(request);
+            case FabricType.ConnectionMessage.FABRIC_REGISTER_EXISTING_CONTRACT:
+                return handleRegisterExistingContract(request);
             default:
                 return FabricConnectionResponse.build()
                         .errorCode(FabricType.TransactionResponseStatus.ILLEGAL_REQUEST_TYPE)
@@ -260,6 +262,41 @@ public class FabricConnection implements Connection {
                         .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
                         .errorMessage(response.getMessage())
                         .data(objectMapper.writeValueAsBytes(response.getData()));
+            }
+        } catch (Exception e) {
+            return FabricConnectionResponse.build()
+                    .errorCode(FabricType.TransactionResponseStatus.INTERNAL_ERROR)
+                    .errorMessage(e.getMessage());
+        }
+    }
+
+    private Response handleRegisterExistingContract(Request request) {
+        try {
+            com.webank.wecross.stub.fabric2.rpc.methods.Response response =
+                    fabricPRCRest
+                            .getContractInfo(
+                                    getChainName(),
+                                    getChannelId(),
+                                    request.getResourceInfo().getName())
+                            .send();
+            if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
+                return FabricConnectionResponse.build()
+                        .errorCode(response.getErrorCode())
+                        .errorMessage(response.getMessage());
+            } else {
+                Map<Object, Object> resourceProperties = new HashMap<>();
+                resourceProperties.put("CHANNEL_ID", getChannelId());
+                resourceProperties.put("CONTRACT_NAME", request.getResourceInfo().getName());
+                resourceProperties.put("CONTRACT_ADDRESS", "");
+                resourceProperties.put("CONTRACT_VERSION", "");
+                resourceProperties.put("CONTRACT_RUNTIME_TYPE", "GO");
+                request.getResourceInfo().setProperties(resourceProperties);
+                connectionEventHandler.onANewResource(request.getResourceInfo());
+
+                return FabricConnectionResponse.build()
+                        .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
+                        .errorMessage(response.getMessage())
+                        .data(objectMapper.writeValueAsBytes(resourceProperties));
             }
         } catch (Exception e) {
             return FabricConnectionResponse.build()

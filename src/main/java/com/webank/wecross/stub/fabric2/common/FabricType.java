@@ -16,6 +16,7 @@ public class FabricType {
         public static final int FABRIC_GET_TRANSACTION = 2005;
         public static final int FABRIC_SUBSCRIBE_CONTRACT = 2006;
         public static final int FABRIC_UNSUBSCRIBE_CONTRACT = 2007;
+        public static final int FABRIC_REGISTER_EXISTING_CONTRACT = 2008;
     }
 
     public static class TransactionResponseStatus {

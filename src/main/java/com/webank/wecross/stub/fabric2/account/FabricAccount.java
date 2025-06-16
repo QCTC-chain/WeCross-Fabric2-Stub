@@ -65,4 +65,8 @@ public class FabricAccount implements Account {
     public String getSecKey() {
         return this.secKey;
     }
+
+    public String getMspID() {
+        return this.mspID;
+    }
 }

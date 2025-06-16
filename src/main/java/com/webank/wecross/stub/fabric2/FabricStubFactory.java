@@ -47,6 +47,7 @@ public class FabricStubFactory implements StubFactory {
             }
 
             FabricConnection fabricConnection = FabricConnectionFactory.build(path);
+            fabricConnection.getProperties().put("StubType", "Fabric2.0");
             fabricConnection.start();
 
             // Check proxy chaincode

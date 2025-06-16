@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecross.stub.*;
+import com.webank.wecross.stub.fabric2.account.FabricAccount;
 import com.webank.wecross.stub.fabric2.common.FabricType;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -286,7 +287,49 @@ public class FabricDriver implements Driver {
             BlockManager blockManager,
             Connection connection,
             CustomCommandCallback callback) {
-        callback.onResponse(new Exception("not implement"), null);
+        switch (command) {
+            case "REGISTER_EXISTING_CONTRACT":
+                registerExistingContract(path, args, account, blockManager, connection, callback);
+                break;
+            default:
+                callback.onResponse(new Exception(String.format("不支持该自定义命令: %s", command)), null);
+        }
+    }
+
+    private void registerExistingContract(
+            Path path,
+            Object[] args,
+            Account account,
+            BlockManager blockManager,
+            Connection connection,
+            CustomCommandCallback callback) {
+        FabricAccount fabricAccount = (FabricAccount) account;
+        Request request =
+                Request.newRequest(
+                        FabricType.ConnectionMessage.FABRIC_REGISTER_EXISTING_CONTRACT, "");
+        request.setPath(path.toString());
+
+        ResourceInfo resourceInfo = new ResourceInfo();
+        resourceInfo.setStubType(connection.getProperties().get("StubType"));
+        resourceInfo.setName(path.getResource());
+        resourceInfo.getProperties().put("mspid", fabricAccount.getMspID());
+        resourceInfo.getProperties().put("identify", fabricAccount.getIdentity());
+
+        request.setResourceInfo(resourceInfo);
+        connection.asyncSend(
+                request,
+                response -> {
+                    if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
+                        callback.onResponse(
+                                new Exception(
+                                        String.format(
+                                                "注册合约 %s 失败。 %s",
+                                                path.getResource(), response.getErrorMessage())),
+                                null);
+                    } else {
+                        callback.onResponse(null, response.getData());
+                    }
+                });
     }
 
     @Override
