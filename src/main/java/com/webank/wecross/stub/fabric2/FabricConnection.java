@@ -34,6 +34,8 @@ public class FabricConnection implements Connection {
     private ThreadPoolTaskExecutor threadPool;
     private Map<String, String> properties = new HashMap<>();
     private String stubPath;
+
+    private ConnectionEventHandler connectionEventHandler;
     private Toml stubToml;
 
     public FabricConnection(String stubPath, ThreadPoolTaskExecutor threadPool) {
@@ -63,6 +65,10 @@ public class FabricConnection implements Connection {
 
     private String getStubType() {
         return this.stubToml.getString("common.type");
+    }
+
+    private String getChainName() {
+        return this.stubToml.getString("common.name");
     }
 
     private Response send(Request request) {
@@ -119,6 +125,7 @@ public class FabricConnection implements Connection {
                             request.getData(), new TypeReference<Map<String, Object>>() {});
             FabricTransactionRequest fabricTransactionRequest =
                     new FabricTransactionRequest(
+                            getChainName(),
                             getChannelId(),
                             (String) requestData.get("chaincodeId"),
                             (String) requestData.get("method"),
@@ -156,6 +163,7 @@ public class FabricConnection implements Connection {
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest
                             .getBlock(
+                                    getChainName(),
                                     getChannelId(),
                                     (long) requestData.get("blockNumber"),
                                     (boolean) requestData.get("onlyHeader"))
@@ -183,7 +191,9 @@ public class FabricConnection implements Connection {
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest
                             .getTransactionInfo(
-                                    getChannelId(), (String) requestData.get("transactionHash"))
+                                    getChainName(),
+                                    getChannelId(),
+                                    (String) requestData.get("transactionHash"))
                             .send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
                 return FabricConnectionResponse.build()
@@ -209,6 +219,7 @@ public class FabricConnection implements Connection {
                             request.getData(), new TypeReference<Map<String, Object>>() {});
             SubscribeEventRequest subscribeEventRequest =
                     new SubscribeEventRequest(
+                            getChainName(),
                             getChannelId(),
                             (String) requestData.get("chaincodeId"),
                             (String) requestData.get("topic"),
@@ -237,7 +248,7 @@ public class FabricConnection implements Connection {
         try {
             String handlerId = new String(request.getData(), StandardCharsets.UTF_8);
             UnSubscribeEventRequest unSubscribeEventRequest =
-                    new UnSubscribeEventRequest(getChannelId(), handlerId);
+                    new UnSubscribeEventRequest(getChainName(), getChannelId(), handlerId);
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.unSubscribeContractEvent(unSubscribeEventRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
@@ -258,7 +269,9 @@ public class FabricConnection implements Connection {
     }
 
     @Override
-    public void setConnectionEventHandler(ConnectionEventHandler eventHandler) {}
+    public void setConnectionEventHandler(ConnectionEventHandler eventHandler) {
+        this.connectionEventHandler = eventHandler;
+    }
 
     @Override
     public Map<String, String> getProperties() {
@@ -269,7 +282,7 @@ public class FabricConnection implements Connection {
         List<ResourceInfo> resourceInfos = new ArrayList<>();
         try {
             ContractsResponse contractsResponse =
-                    fabricPRCRest.getContractList(getChannelId()).send();
+                    fabricPRCRest.getContractList(getChainName(), getChannelId()).send();
             Contracts contracts = contractsResponse.getContracts();
 
             for (ContractInfo contractInfo : contracts.getContractInfos()) {

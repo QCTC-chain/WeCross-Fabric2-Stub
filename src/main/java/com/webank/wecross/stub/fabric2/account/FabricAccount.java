@@ -2,14 +2,29 @@ package com.webank.wecross.stub.fabric2.account;
 
 import com.webank.wecross.stub.Account;
 import com.webank.wecross.stub.fabric2.common.FabricType;
+import java.nio.charset.StandardCharsets;
+import org.bouncycastle.jcajce.provider.digest.Keccak;
+import org.bouncycastle.util.encoders.Hex;
 
 public class FabricAccount implements Account {
     private int keyID;
     private boolean isDefault;
 
+    private String userName;
+    private String mspID;
+    private String pubKey;
+    private String secKey;
+
+    public FabricAccount(String userName, String mspID, String pubKey, String secKey) {
+        this.userName = userName;
+        this.mspID = mspID;
+        this.pubKey = pubKey;
+        this.secKey = secKey;
+    }
+
     @Override
     public String getName() {
-        return "";
+        return this.userName;
     }
 
     @Override
@@ -19,7 +34,10 @@ public class FabricAccount implements Account {
 
     @Override
     public String getIdentity() {
-        return "";
+        Keccak.DigestKeccak kecc = new Keccak.Digest256();
+        kecc.update(this.pubKey.getBytes(StandardCharsets.UTF_8), 0, this.pubKey.length());
+        byte[] address = kecc.digest();
+        return Hex.toHexString(address);
     }
 
     @Override
@@ -29,7 +47,7 @@ public class FabricAccount implements Account {
 
     @Override
     public boolean isDefault() {
-        return true;
+        return this.isDefault;
     }
 
     public void setKeyID(int keyID) {
@@ -38,5 +56,13 @@ public class FabricAccount implements Account {
 
     public void setDefault(boolean aDefault) {
         isDefault = aDefault;
+    }
+
+    public String getPubKey() {
+        return this.pubKey;
+    }
+
+    public String getSecKey() {
+        return this.secKey;
     }
 }

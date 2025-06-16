@@ -8,7 +8,9 @@ import com.webank.wecross.stub.Driver;
 import com.webank.wecross.stub.Stub;
 import com.webank.wecross.stub.StubFactory;
 import com.webank.wecross.stub.WeCrossContext;
+import com.webank.wecross.stub.fabric2.account.FabricAccount;
 import com.webank.wecross.stub.fabric2.account.FabricAccountFactory;
+import com.webank.wecross.stub.fabric2.utils.ConfigUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -25,6 +27,8 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 public class FabricStubFactory implements StubFactory {
     private static Logger logger = LoggerFactory.getLogger(FabricStubFactory.class);
 
+    private String stubPath;
+
     @Override
     public void init(WeCrossContext context) {}
 
@@ -36,6 +40,12 @@ public class FabricStubFactory implements StubFactory {
     @Override
     public Connection newConnection(String path) {
         try {
+            if (path.contains("classpath:")) {
+                this.stubPath = ConfigUtils.classpath2Absolute(path);
+            } else {
+                this.stubPath = path;
+            }
+
             FabricConnection fabricConnection = FabricConnectionFactory.build(path);
             fabricConnection.start();
 
@@ -53,7 +63,33 @@ public class FabricStubFactory implements StubFactory {
 
     @Override
     public Account newAccount(Map<String, Object> properties) {
-        return FabricAccountFactory.build(properties);
+        FabricAccount account = FabricAccountFactory.build(properties);
+        try {
+            File certFile =
+                    new File(
+                            this.stubPath
+                                    + File.separator
+                                    + "accounts"
+                                    + File.separator
+                                    + account.getIdentity()
+                                    + File.separator
+                                    + "account.crt");
+            writeContent(certFile, account.getPubKey());
+
+            File keyFile =
+                    new File(
+                            this.stubPath
+                                    + File.separator
+                                    + "accounts"
+                                    + File.separator
+                                    + account.getIdentity()
+                                    + File.separator
+                                    + "account.key");
+            writeContent(keyFile, account.getSecKey());
+        } catch (IOException e) {
+        }
+
+        return account;
     }
 
     @Override
@@ -107,6 +143,10 @@ public class FabricStubFactory implements StubFactory {
     }
 
     private void writeContent(File file, String content) throws IOException {
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+
         if (!file.createNewFile()) {
             return;
         }
@@ -202,7 +242,6 @@ public class FabricStubFactory implements StubFactory {
             File confFile = new File(path + File.separator + "stub.toml");
             writeContent(confFile, stubTomlContent);
 
-            // File fabric2ConfigFile = new File(path + File.separator + "config.yaml");
             StubConfigGenerator.generateConfig(stubConfigStr, path);
 
             // Generate proxy and hub chaincodes
