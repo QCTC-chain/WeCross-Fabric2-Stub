@@ -176,7 +176,7 @@ public class StubConfigGenerator {
             Map<String, Object> users = new HashMap<>();
             for (StubConfig.User user : org.getUsers()) {
                 Map<String, Object> oneUserConfig = new HashMap<>();
-                Map<String, String> path = new HashMap<>();
+                Map<String, String> certPath = new HashMap<>();
 
                 File crtFile =
                         new File(
@@ -188,8 +188,8 @@ public class StubConfigGenerator {
                                         + File.separator
                                         + "account.crt");
                 writeContent(crtFile, user.getCrt());
-                path.put("path", crtFile.getAbsolutePath());
-                oneUserConfig.put("cert", path);
+                certPath.put("path", crtFile.getAbsolutePath());
+                oneUserConfig.put("cert", certPath);
 
                 File keyFile =
                         new File(
@@ -201,8 +201,9 @@ public class StubConfigGenerator {
                                         + File.separator
                                         + "account.key");
                 writeContent(keyFile, user.getKey());
-                path.put("path", keyFile.getAbsolutePath());
-                oneUserConfig.put("key", path);
+                Map<String, String> keyPath = new HashMap<>();
+                keyPath.put("path", keyFile.getAbsolutePath());
+                oneUserConfig.put("key", keyPath);
 
                 users.put(user.getName(), oneUserConfig);
             }
