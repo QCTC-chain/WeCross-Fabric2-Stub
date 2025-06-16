@@ -19,7 +19,6 @@ import com.webank.wecross.stub.fabric2.rpc.service.FabricRPCService;
 import com.webank.wecross.stub.fabric2.rpc.service.FabricService;
 import com.webank.wecross.stub.fabric2.utils.ConfigUtils;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,6 +131,8 @@ public class FabricConnection implements Connection {
                             (String) requestData.get("chaincodeId"),
                             (String) requestData.get("method"),
                             (Object[]) requestData.get("args"));
+            fabricTransactionRequest.setIdentify((String) requestData.get("identify"));
+            fabricTransactionRequest.setMspId((String) requestData.get("mspId"));
 
             com.webank.wecross.stub.fabric2.rpc.methods.Response response;
             if (isEvaluate) {
@@ -227,6 +228,8 @@ public class FabricConnection implements Connection {
                             (String) requestData.get("topic"),
                             (long) requestData.get("fromBlock"),
                             (long) requestData.get("endBlock"));
+            subscribeEventRequest.setIdentify((String) requestData.get("identify"));
+            subscribeEventRequest.setMspId((String) requestData.get("mspId"));
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.subscribeContractEvent(subscribeEventRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
@@ -248,9 +251,18 @@ public class FabricConnection implements Connection {
 
     private Response handleUnSubscribeContractEvent(Request request) {
         try {
-            String handlerId = new String(request.getData(), StandardCharsets.UTF_8);
+            Map<String, Object> requestData =
+                    objectMapper.readValue(
+                            request.getData(), new TypeReference<Map<String, Object>>() {});
+
             UnSubscribeEventRequest unSubscribeEventRequest =
-                    new UnSubscribeEventRequest(getChainName(), getChannelId(), handlerId);
+                    new UnSubscribeEventRequest(
+                            getChainName(),
+                            getChannelId(),
+                            (String) requestData.get("subscribeEventId"));
+            unSubscribeEventRequest.setIdentify((String) requestData.get("identify"));
+            unSubscribeEventRequest.setMspId((String) requestData.get("mspId"));
+
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.unSubscribeContractEvent(unSubscribeEventRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {

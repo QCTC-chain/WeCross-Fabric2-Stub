@@ -1,6 +1,8 @@
 package com.webank.wecross.stub.fabric2.rpc.methods.request;
 
 public class FabricTransactionRequest {
+    private String identify;
+    private String mspId;
     private String chainName;
     private String channelId;
     private String chaincodeId;
@@ -14,6 +16,22 @@ public class FabricTransactionRequest {
         this.chaincodeId = chaincodeId;
         this.method = method;
         this.args = args;
+    }
+
+    public void setIdentify(String identify) {
+        this.identify = identify;
+    }
+
+    public String getIdentify() {
+        return this.identify;
+    }
+
+    public void setMspId(String mspId) {
+        this.mspId = mspId;
+    }
+
+    public String getMspId() {
+        return this.mspId;
     }
 
     public void setChainName(String chainName) {

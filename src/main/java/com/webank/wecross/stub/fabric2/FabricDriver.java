@@ -40,7 +40,10 @@ public class FabricDriver implements Driver {
             Callback callback,
             boolean isEvaluate) {
         try {
+            FabricAccount account = (FabricAccount) context.getAccount();
             Map<String, Object> data = new HashMap<>();
+            data.put("identify", account.getIdentity());
+            data.put("mspId", account.getMspID());
             data.put("chaincodeId", context.getPath().getResource());
             data.put("method", request.getMethod());
             data.put("args", request.getArgs());
@@ -219,16 +222,21 @@ public class FabricDriver implements Driver {
             Connection connection,
             Driver.Callback callback) {
         try {
+            FabricAccount account = (FabricAccount) context.getAccount();
             String topic = request.getTopics().get(0).trim();
             Request connectionRequest;
+            Map<String, Object> requestData = new HashMap<>();
             if ("@cancel".equals(topic)) {
-                String handler = request.getTopics().get(1);
+                requestData.put("identify", account.getIdentity());
+                requestData.put("mspId", account.getMspID());
+                requestData.put("subscribeEventId", request.getTopics().get(1));
                 connectionRequest =
                         Request.newRequest(
                                 FabricType.ConnectionMessage.FABRIC_UNSUBSCRIBE_CONTRACT,
-                                handler.getBytes(StandardCharsets.UTF_8));
+                                objectMapper.writeValueAsBytes(requestData));
             } else {
-                Map<String, Object> requestData = new HashMap<>();
+                requestData.put("identify", account.getIdentity());
+                requestData.put("mspId", account.getMspID());
                 requestData.put("chaincodeId", context.getPath().getResource());
                 requestData.put("topic", topic);
                 requestData.put("fromBlock", request.getFromBlockNumber());
@@ -312,7 +320,7 @@ public class FabricDriver implements Driver {
         ResourceInfo resourceInfo = new ResourceInfo();
         resourceInfo.setStubType(connection.getProperties().get("StubType"));
         resourceInfo.setName(path.getResource());
-        resourceInfo.getProperties().put("mspid", fabricAccount.getMspID());
+        resourceInfo.getProperties().put("mspId", fabricAccount.getMspID());
         resourceInfo.getProperties().put("identify", fabricAccount.getIdentity());
 
         request.setResourceInfo(resourceInfo);

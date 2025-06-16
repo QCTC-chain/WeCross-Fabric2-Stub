@@ -171,7 +171,7 @@ public class StubConfigGenerator {
         for (StubConfig.Org org : stubConfig.getOrgs()) {
             String orgId = org.getName();
             Map<String, Object> oneOrgConfig = new HashMap<>();
-            oneOrgConfig.put("mspid", org.getMspid());
+            oneOrgConfig.put("mspId", org.getMspid());
 
             Map<String, Object> users = new HashMap<>();
             for (StubConfig.User user : org.getUsers()) {
