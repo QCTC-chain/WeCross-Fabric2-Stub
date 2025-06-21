@@ -41,10 +41,13 @@ public class FabricDriver implements Driver {
             boolean isEvaluate) {
         try {
             FabricAccount account = (FabricAccount) context.getAccount();
+            String sdkConfig =
+                    FabricSDKConfigGenerator.getOrUpdateSDKConfig(
+                            connection.getProperties().get(FabricType.Properties.STUB_PATH),
+                            account);
             Map<String, Object> data = new HashMap<>();
-            data.put("identify", account.getIdentity());
-            data.put("mspId", account.getMspID());
-            data.put("chaincodeId", context.getPath().getResource());
+            data.put("sdkConfig", sdkConfig);
+            data.put("chaincodeName", context.getPath().getResource());
             data.put("method", request.getMethod());
             data.put("args", request.getArgs());
             Request callRequest =
@@ -76,10 +79,16 @@ public class FabricDriver implements Driver {
                         callback.onTransactionResponse(null, null);
                     });
         } catch (JsonProcessingException e) {
-            logger.error("asyncSendTransaction was failure. {}", e.getMessage());
+            logger.error("asyncSendTransaction was failure. {}", e);
             callback.onTransactionResponse(
                     new TransactionException(
                             FabricType.TransactionResponseStatus.INTERNAL_ERROR, "格式数据失败"),
+                    null);
+        } catch (Exception e) {
+            logger.error("asyncSendTransaction was failure. {}", e);
+            callback.onTransactionResponse(
+                    new TransactionException(
+                            FabricType.TransactionResponseStatus.INTERNAL_ERROR, "其他错误"),
                     null);
         }
     }
@@ -127,6 +136,10 @@ public class FabricDriver implements Driver {
             GetBlockCallback callback) {
         try {
             Map<String, Object> requestData = new HashMap<>();
+            String sdkConfig =
+                    FabricSDKConfigGenerator.getDefaultSDKConfig(
+                            connection.getProperties().get(FabricType.Properties.STUB_PATH));
+            requestData.put("sdkConfig", sdkConfig);
             requestData.put("blockNumber", blockNumber);
             requestData.put("onlyHeader", onlyHeader);
             Request request =
@@ -183,6 +196,10 @@ public class FabricDriver implements Driver {
             GetTransactionCallback callback) {
         try {
             Map<String, Object> requestData = new HashMap<>();
+            String sdkConfig =
+                    FabricSDKConfigGenerator.getDefaultSDKConfig(
+                            connection.getProperties().get(FabricType.Properties.STUB_PATH));
+            requestData.put("sdkConfig", sdkConfig);
             requestData.put("transactionHash", transactionHash);
             requestData.put("blockNumber", blockNumber);
             requestData.put("isVerified", isVerified);
@@ -205,8 +222,8 @@ public class FabricDriver implements Driver {
                         }
                     });
 
-        } catch (JsonProcessingException e) {
-            logger.error("asyncGetTransaction was failure. {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("asyncGetTransaction was failure. {}", e);
             callback.onResponse(
                     new Exception(
                             String.format(
@@ -223,21 +240,25 @@ public class FabricDriver implements Driver {
             Driver.Callback callback) {
         try {
             FabricAccount account = (FabricAccount) context.getAccount();
+            String sdkConfig =
+                    FabricSDKConfigGenerator.getOrUpdateSDKConfig(
+                            connection.getProperties().get(FabricType.Properties.STUB_PATH),
+                            account);
             String topic = request.getTopics().get(0).trim();
             Request connectionRequest;
             Map<String, Object> requestData = new HashMap<>();
             if ("@cancel".equals(topic)) {
-                requestData.put("identify", account.getIdentity());
-                requestData.put("mspId", account.getMspID());
+                requestData.put("sdkConfig", sdkConfig);
+                // TODO
+                // Fabric2 api service 维护 subscribeEventId
                 requestData.put("subscribeEventId", request.getTopics().get(1));
                 connectionRequest =
                         Request.newRequest(
                                 FabricType.ConnectionMessage.FABRIC_UNSUBSCRIBE_CONTRACT,
                                 objectMapper.writeValueAsBytes(requestData));
             } else {
-                requestData.put("identify", account.getIdentity());
-                requestData.put("mspId", account.getMspID());
-                requestData.put("chaincodeId", context.getPath().getResource());
+                requestData.put("sdkConfig", sdkConfig);
+                requestData.put("chaincodeName", context.getPath().getResource());
                 requestData.put("topic", topic);
                 requestData.put("fromBlock", request.getFromBlockNumber());
                 requestData.put("endBlock", request.getToBlockNumber());
@@ -277,8 +298,8 @@ public class FabricDriver implements Driver {
                         callback.onTransactionResponse(null, transactionResponse);
                     });
 
-        } catch (JsonProcessingException e) {
-            logger.error("subscribeEvent was failure. {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("subscribeEvent was failure. {}", e);
             callback.onTransactionResponse(
                     new TransactionException(
                             FabricType.TransactionResponseStatus.INTERNAL_ERROR, e.getMessage()),
@@ -295,12 +316,18 @@ public class FabricDriver implements Driver {
             BlockManager blockManager,
             Connection connection,
             CustomCommandCallback callback) {
-        switch (command) {
-            case "REGISTER_EXISTING_CONTRACT":
-                registerExistingContract(path, args, account, blockManager, connection, callback);
-                break;
-            default:
-                callback.onResponse(new Exception(String.format("不支持该自定义命令: %s", command)), null);
+        try {
+            switch (command) {
+                case "REGISTER_EXISTING_CONTRACT":
+                    registerExistingContract(
+                            path, args, account, blockManager, connection, callback);
+                    break;
+                default:
+                    callback.onResponse(
+                            new Exception(String.format("不支持该自定义命令: %s", command)), null);
+            }
+        } catch (Exception e) {
+            callback.onResponse(new Exception(String.format("处理 %s 异常", command)), null);
         }
     }
 
@@ -310,18 +337,24 @@ public class FabricDriver implements Driver {
             Account account,
             BlockManager blockManager,
             Connection connection,
-            CustomCommandCallback callback) {
+            CustomCommandCallback callback)
+            throws Exception {
         FabricAccount fabricAccount = (FabricAccount) account;
+        String sdkConfig =
+                FabricSDKConfigGenerator.getOrUpdateSDKConfig(
+                        connection.getProperties().get(FabricType.Properties.STUB_PATH),
+                        fabricAccount);
         Request request =
                 Request.newRequest(
-                        FabricType.ConnectionMessage.FABRIC_REGISTER_EXISTING_CONTRACT, "");
+                        FabricType.ConnectionMessage.FABRIC_REGISTER_EXISTING_CONTRACT, sdkConfig);
         request.setPath(path.toString());
 
         ResourceInfo resourceInfo = new ResourceInfo();
-        resourceInfo.setStubType(connection.getProperties().get("StubType"));
+        resourceInfo.setStubType(connection.getProperties().get(FabricType.Properties.STUB_TYPE));
         resourceInfo.setName(path.getResource());
         resourceInfo.getProperties().put("mspId", fabricAccount.getMspID());
-        resourceInfo.getProperties().put("identify", fabricAccount.getIdentity());
+        resourceInfo.getProperties().put("name", fabricAccount.getName());
+        resourceInfo.getProperties().put("orgName", fabricAccount.getOrgName());
 
         request.setResourceInfo(resourceInfo);
         connection.asyncSend(

@@ -1,48 +1,20 @@
 package com.webank.wecross.stub.fabric2.rpc.methods.request;
 
 public class UnSubscribeEventRequest {
-    private String identify;
-    private String mspId;
-    private String chainName;
-    private String channelId;
+    private String sdkConfig;
     private String subscribeEventId;
 
-    public UnSubscribeEventRequest(String chainName, String channelId, String subscribeEventId) {
-        this.chainName = chainName;
-        this.channelId = channelId;
+    public UnSubscribeEventRequest(String sdkConfig, String subscribeEventId) {
+        this.sdkConfig = sdkConfig;
         this.subscribeEventId = subscribeEventId;
     }
 
-    public void setIdentify(String identify) {
-        this.identify = identify;
+    public void setSdkConfig(String sdkConfig) {
+        this.sdkConfig = sdkConfig;
     }
 
-    public String getIdentify() {
-        return this.identify;
-    }
-
-    public void setMspId(String mspId) {
-        this.mspId = mspId;
-    }
-
-    public String getMspId() {
-        return this.mspId;
-    }
-
-    public void setChainName(String chainName) {
-        this.chainName = chainName;
-    }
-
-    public String getChainName() {
-        return this.chainName;
-    }
-
-    public void setChannelId(String channelId) {
-        this.channelId = channelId;
-    }
-
-    public String getChannelId() {
-        return this.channelId;
+    public String getSdkConfig() {
+        return this.sdkConfig;
     }
 
     public void setSubscribeEventId(String subscribeEventId) {
@@ -55,13 +27,6 @@ public class UnSubscribeEventRequest {
 
     @Override
     public String toString() {
-        return "UnSubscribeEventRequest{"
-                + "channelId='"
-                + channelId
-                + "',"
-                + "subscribeEventId='"
-                + subscribeEventId
-                + "'"
-                + "}";
+        return "UnSubscribeEventRequest{" + "subscribeEventId='" + subscribeEventId + "'" + "}";
     }
 }

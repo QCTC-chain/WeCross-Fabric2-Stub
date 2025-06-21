@@ -33,4 +33,9 @@ public class FabricType {
         public static final int FABRIC_REGISTER_CHAINCODE_EVENT_FAILED = 3104;
         public static final int FABRIC_UNREGISTER_CHAINCODE_EVENT_FAILED = 3105;
     }
+
+    public static final class Properties {
+        public static final String STUB_TYPE = "StubType";
+        public static final String STUB_PATH = "StubPath";
+    }
 }

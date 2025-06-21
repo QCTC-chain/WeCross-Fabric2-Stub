@@ -10,6 +10,7 @@ import com.webank.wecross.stub.StubFactory;
 import com.webank.wecross.stub.WeCrossContext;
 import com.webank.wecross.stub.fabric2.account.FabricAccount;
 import com.webank.wecross.stub.fabric2.account.FabricAccountFactory;
+import com.webank.wecross.stub.fabric2.common.FabricType;
 import com.webank.wecross.stub.fabric2.utils.ConfigUtils;
 import java.io.File;
 import java.io.FileWriter;
@@ -46,7 +47,8 @@ public class FabricStubFactory implements StubFactory {
             }
 
             FabricConnection fabricConnection = FabricConnectionFactory.build(path);
-            fabricConnection.getProperties().put("StubType", "Fabric2.0");
+            fabricConnection.getProperties().put(FabricType.Properties.STUB_TYPE, "Fabric2.0");
+            fabricConnection.getProperties().put(FabricType.Properties.STUB_PATH, path);
             fabricConnection.start();
 
             // Check proxy chaincode

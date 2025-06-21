@@ -9,9 +9,7 @@ import com.webank.wecross.stub.ResourceInfo;
 import com.webank.wecross.stub.Response;
 import com.webank.wecross.stub.fabric2.common.FabricType;
 import com.webank.wecross.stub.fabric2.rpc.FabricPRCRest;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.FabricTransactionRequest;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.SubscribeEventRequest;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.UnSubscribeEventRequest;
+import com.webank.wecross.stub.fabric2.rpc.methods.request.*;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
 import com.webank.wecross.stub.fabric2.rpc.model.ContractInfo;
 import com.webank.wecross.stub.fabric2.rpc.model.Contracts;
@@ -19,6 +17,7 @@ import com.webank.wecross.stub.fabric2.rpc.service.FabricRPCService;
 import com.webank.wecross.stub.fabric2.rpc.service.FabricService;
 import com.webank.wecross.stub.fabric2.utils.ConfigUtils;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +72,7 @@ public class FabricConnection implements Connection {
     private Response send(Request request) {
 
         switch (request.getType()) {
-            case FabricType.ConnectionMessage.FABRIC_GET_BLOCK_NUMBER:
+            case FabricType.ConnectionMessage.FABRIC_GET_BLOCK:
                 return handleGetBlock(request);
             case FabricType.ConnectionMessage.FABRIC_GET_TRANSACTION:
                 return handleGetTransaction(request);
@@ -126,13 +125,10 @@ public class FabricConnection implements Connection {
                             request.getData(), new TypeReference<Map<String, Object>>() {});
             FabricTransactionRequest fabricTransactionRequest =
                     new FabricTransactionRequest(
-                            getChainName(),
-                            getChannelId(),
-                            (String) requestData.get("chaincodeId"),
+                            (String) requestData.get("sdkConfig"),
+                            (String) requestData.get("chaincodeName"),
                             (String) requestData.get("method"),
                             (Object[]) requestData.get("args"));
-            fabricTransactionRequest.setIdentify((String) requestData.get("identify"));
-            fabricTransactionRequest.setMspId((String) requestData.get("mspId"));
 
             com.webank.wecross.stub.fabric2.rpc.methods.Response response;
             if (isEvaluate) {
@@ -163,14 +159,13 @@ public class FabricConnection implements Connection {
             Map<String, Object> requestData =
                     objectMapper.readValue(
                             request.getData(), new TypeReference<Map<String, Object>>() {});
+            GetBlockRequest getBlockRequest =
+                    new GetBlockRequest(
+                            (String) requestData.get("sdkConfig"),
+                            (long) requestData.get("blockNumber"),
+                            (boolean) requestData.get("onlyHeader"));
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
-                    fabricPRCRest
-                            .getBlock(
-                                    getChainName(),
-                                    getChannelId(),
-                                    (long) requestData.get("blockNumber"),
-                                    (boolean) requestData.get("onlyHeader"))
-                            .send();
+                    fabricPRCRest.getBlock(getBlockRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
                 return FabricConnectionResponse.build()
                         .errorCode(response.getErrorCode())
@@ -191,13 +186,14 @@ public class FabricConnection implements Connection {
             Map<String, Object> requestData =
                     objectMapper.readValue(
                             request.getData(), new TypeReference<Map<String, Object>>() {});
+            GetTransactionRequest transactionRequest =
+                    new GetTransactionRequest(
+                            (String) requestData.get("sdkConfig"),
+                            (String) requestData.get("transactionHash"),
+                            (long) requestData.get("blockNumber"),
+                            (boolean) requestData.get("isVerified"));
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
-                    fabricPRCRest
-                            .getTransactionInfo(
-                                    getChainName(),
-                                    getChannelId(),
-                                    (String) requestData.get("transactionHash"))
-                            .send();
+                    fabricPRCRest.getTransactionInfo(transactionRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
                 return FabricConnectionResponse.build()
                         .errorCode(response.getErrorCode())
@@ -222,14 +218,11 @@ public class FabricConnection implements Connection {
                             request.getData(), new TypeReference<Map<String, Object>>() {});
             SubscribeEventRequest subscribeEventRequest =
                     new SubscribeEventRequest(
-                            getChainName(),
-                            getChannelId(),
-                            (String) requestData.get("chaincodeId"),
+                            (String) requestData.get("sdkConfig"),
+                            (String) requestData.get("chaincodeName"),
                             (String) requestData.get("topic"),
                             (long) requestData.get("fromBlock"),
                             (long) requestData.get("endBlock"));
-            subscribeEventRequest.setIdentify((String) requestData.get("identify"));
-            subscribeEventRequest.setMspId((String) requestData.get("mspId"));
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.subscribeContractEvent(subscribeEventRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
@@ -257,11 +250,8 @@ public class FabricConnection implements Connection {
 
             UnSubscribeEventRequest unSubscribeEventRequest =
                     new UnSubscribeEventRequest(
-                            getChainName(),
-                            getChannelId(),
+                            (String) requestData.get("sdkConfig"),
                             (String) requestData.get("subscribeEventId"));
-            unSubscribeEventRequest.setIdentify((String) requestData.get("identify"));
-            unSubscribeEventRequest.setMspId((String) requestData.get("mspId"));
 
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.unSubscribeContractEvent(unSubscribeEventRequest).send();
@@ -284,13 +274,11 @@ public class FabricConnection implements Connection {
 
     private Response handleRegisterExistingContract(Request request) {
         try {
+            String sdkConfig = new String(request.getData(), StandardCharsets.UTF_8);
+            GetContractInfoRequest contractInfoRequest =
+                    new GetContractInfoRequest(sdkConfig, request.getResourceInfo().getName());
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
-                    fabricPRCRest
-                            .getContractInfo(
-                                    getChainName(),
-                                    getChannelId(),
-                                    request.getResourceInfo().getName())
-                            .send();
+                    fabricPRCRest.getContractInfo(contractInfoRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
                 return FabricConnectionResponse.build()
                         .errorCode(response.getErrorCode())

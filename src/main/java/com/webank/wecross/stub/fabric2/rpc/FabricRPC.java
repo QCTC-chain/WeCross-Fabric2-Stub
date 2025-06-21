@@ -1,9 +1,7 @@
 package com.webank.wecross.stub.fabric2.rpc;
 
 import com.webank.wecross.stub.fabric2.rpc.methods.Response;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.FabricTransactionRequest;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.SubscribeEventRequest;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.UnSubscribeEventRequest;
+import com.webank.wecross.stub.fabric2.rpc.methods.request.*;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
 
 public interface FabricRPC {
@@ -11,12 +9,11 @@ public interface FabricRPC {
 
     RemoteCall<Response> instantiateRemoteService();
 
-    RemoteCall<Response> getBlock(
-            String chainName, String channelId, long blockNumber, boolean onlyHeader);
+    RemoteCall<Response> getBlock(GetBlockRequest request);
 
     RemoteCall<ContractsResponse> getContractList(String chainName, String channelId);
 
-    RemoteCall<Response> getContractInfo(String chainName, String channelId, String chaincodeId);
+    RemoteCall<Response> getContractInfo(GetContractInfoRequest contractInfoRequest);
 
     RemoteCall<Response> subscribeContractEvent(SubscribeEventRequest subscribeEventRequest);
 
@@ -26,5 +23,5 @@ public interface FabricRPC {
 
     RemoteCall<Response> sendTransaction(FabricTransactionRequest transactionRequest);
 
-    RemoteCall<Response> getTransactionInfo(String chainName, String channelId, String txId);
+    RemoteCall<Response> getTransactionInfo(GetTransactionRequest transactionRequest);
 }

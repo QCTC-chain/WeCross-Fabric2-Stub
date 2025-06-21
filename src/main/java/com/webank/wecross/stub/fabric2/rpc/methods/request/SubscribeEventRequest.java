@@ -1,76 +1,43 @@
 package com.webank.wecross.stub.fabric2.rpc.methods.request;
 
 public class SubscribeEventRequest {
-    private String identify;
-    private String mspId;
-    private String chainName;
-    private String channelId;
-    private String chaincodeId;
-    private String topic;
-    private long fromBlock;
-    private long endBlock;
+    private String sdkConfig;
+    private String chaincodeName;
+    private String eventName;
+    private long fromBlock = -1;
+    private long endBlock = -1;
 
     public SubscribeEventRequest(
-            String chainName,
-            String channelId,
-            String chaincodeId,
-            String topic,
-            long fromBlock,
-            long endBlock) {
-        this.chainName = chainName;
-        this.chaincodeId = chaincodeId;
-        this.channelId = channelId;
-        this.topic = topic;
+            String sdkConfig, String chaincodeName, String topic, long fromBlock, long endBlock) {
+        this.sdkConfig = sdkConfig;
+        this.chaincodeName = chaincodeName;
+        this.eventName = topic;
         this.fromBlock = fromBlock;
         this.endBlock = endBlock;
     }
 
-    public void setIdentify(String identify) {
-        this.identify = identify;
+    public void setSdkConfig(String sdkConfig) {
+        this.sdkConfig = sdkConfig;
     }
 
-    public String getIdentify() {
-        return this.identify;
+    public String getSdkConfig() {
+        return this.sdkConfig;
     }
 
-    public void setMspId(String mspId) {
-        this.mspId = mspId;
+    public void setChaincodeName(String chaincodeName) {
+        this.chaincodeName = chaincodeName;
     }
 
-    public String getMspId() {
-        return this.mspId;
+    public String getChaincodeName() {
+        return this.chaincodeName;
     }
 
-    public void setChainName(String chainName) {
-        this.chainName = chainName;
+    public void setEventName(String eventName) {
+        this.eventName = eventName;
     }
 
-    public String getChainName() {
-        return this.chainName;
-    }
-
-    public void setChannelId(String channelId) {
-        this.channelId = channelId;
-    }
-
-    public String getChannelId() {
-        return this.channelId;
-    }
-
-    public void setChaincodeId(String chaincodeId) {
-        this.chaincodeId = chaincodeId;
-    }
-
-    public String getChaincodeId() {
-        return this.chaincodeId;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
-
-    public String getTopic() {
-        return this.topic;
+    public String getEventName() {
+        return this.eventName;
     }
 
     public void setFromBlock(long fromBlock) {
@@ -92,14 +59,11 @@ public class SubscribeEventRequest {
     @Override
     public String toString() {
         return "SubscribeEventRequest{"
-                + "channelId='"
-                + channelId
+                + "chaincodeName='"
+                + chaincodeName
                 + "',"
-                + "chaincodeId='"
-                + chaincodeId
-                + "',"
-                + "topic='"
-                + topic
+                + "eventName='"
+                + eventName
                 + "',"
                 + "fromBlock="
                 + fromBlock

@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecross.stub.fabric2.rpc.methods.Request;
 import com.webank.wecross.stub.fabric2.rpc.methods.Response;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.FabricTransactionRequest;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.InitConfigRequest;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.SubscribeEventRequest;
-import com.webank.wecross.stub.fabric2.rpc.methods.request.UnSubscribeEventRequest;
+import com.webank.wecross.stub.fabric2.rpc.methods.request.*;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
 import com.webank.wecross.stub.fabric2.rpc.service.FabricService;
 
@@ -44,16 +41,10 @@ public class FabricPRCRest implements FabricRPC {
     }
 
     @Override
-    public RemoteCall<Response> getBlock(
-            String chainName, String channelId, long blockNumber, boolean onlyHeader) {
+    public RemoteCall<Response> getBlock(GetBlockRequest blockRequest) {
+        Request<GetBlockRequest> request = new Request<>(blockRequest);
         return new RemoteCall<>(
-                fabricService,
-                "GET",
-                String.format(
-                        "/api/v1/block/info?chainName=%s&channelId=%s&height=%d&onlyHeader=%d",
-                        chainName, channelId, blockNumber, onlyHeader ? 1 : 0),
-                Response.class,
-                new Request<>());
+                fabricService, "POST", "/api/v1/block/info", Response.class, request);
     }
 
     @Override
@@ -68,16 +59,10 @@ public class FabricPRCRest implements FabricRPC {
     }
 
     @Override
-    public RemoteCall<Response> getContractInfo(
-            String chainName, String channelId, String chaincodeId) {
+    public RemoteCall<Response> getContractInfo(GetContractInfoRequest contractInfoRequest) {
+        Request<GetContractInfoRequest> request = new Request<>(contractInfoRequest);
         return new RemoteCall<>(
-                fabricService,
-                "GET",
-                String.format(
-                        "/api/v1/contract/info?chainName=%s&channelId=%s&chaincodeId=%s",
-                        chainName, channelId, chaincodeId),
-                Response.class,
-                new Request<>());
+                fabricService, "POST", "/api/v1/contract/info", Response.class, request);
     }
 
     @Override
@@ -111,15 +96,9 @@ public class FabricPRCRest implements FabricRPC {
     }
 
     @Override
-    public RemoteCall<Response> getTransactionInfo(
-            String chainName, String channelId, String txId) {
+    public RemoteCall<Response> getTransactionInfo(GetTransactionRequest transactionRequest) {
+        Request<GetTransactionRequest> request = new Request<>(transactionRequest);
         return new RemoteCall<>(
-                fabricService,
-                "GET",
-                String.format(
-                        "/api/v1/transaction/info?chainName=%s&channelId=%s&txId=%s",
-                        chainName, channelId, txId),
-                Response.class,
-                new Request<>());
+                fabricService, "POST", "/api/v1/transaction/info", Response.class, request);
     }
 }

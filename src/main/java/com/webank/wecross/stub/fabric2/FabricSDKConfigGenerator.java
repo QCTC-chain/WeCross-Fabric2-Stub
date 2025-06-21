@@ -278,6 +278,11 @@ public class FabricSDKConfigGenerator {
         return stubConfig;
     }
 
+    public static String getDefaultSDKConfig(String stubPath) throws Exception {
+        String tomlPath = stubPath + File.separator + "stub.toml";
+        return generateSDKConfigFrom(tomlPath);
+    }
+
     public static String generateSDKConfigFrom(String stubTomlPath) throws Exception {
         Toml toml = ConfigUtils.getToml(stubTomlPath);
         String chainName = toml.getString("common.name");
