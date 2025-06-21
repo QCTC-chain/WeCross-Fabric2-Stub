@@ -15,18 +15,17 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-@Stub("Fabric2.0")
+@Stub("GM_Fabric2.0")
 public class FabricStubFactory implements StubFactory {
     private static Logger logger = LoggerFactory.getLogger(FabricStubFactory.class);
-
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private String stubPath;
 
     @Override
@@ -164,7 +163,8 @@ public class FabricStubFactory implements StubFactory {
             String chainType,
             String chainName,
             Map<String, Object> stubConfig,
-            Map<String, Object> mqConfig) {
+            Map<String, Object> mqConfig)
+            throws Exception {
 
         StringJoiner toml = new StringJoiner("\n");
 
@@ -178,18 +178,61 @@ public class FabricStubFactory implements StubFactory {
                         + "'\n";
         toml.add(stubCommon);
 
-        Map<String, String> fabricServiceObject =
-                (Map<String, String>) stubConfig.get("fabricServices");
-
-        String fabricService =
-                "[fabricServices]\n"
-                        + "    channelName = '"
-                        + fabricServiceObject.get("channelName")
+        Map<String, String> userMapper = (Map<String, String>) stubConfig.get("user");
+        String user =
+                "[user]\n"
+                        + "    orgName = '"
+                        + userMapper.get("orgName")
                         + "'\n"
-                        + "    orgUserName = '"
-                        + fabricServiceObject.get("orgUserName")
+                        + "    mspId = '"
+                        + userMapper.get("mspId")
+                        + "'\n"
+                        + "    name = '"
+                        + userMapper.get("name")
+                        + "'\n"
+                        + "    crt = '"
+                        + userMapper.get("crt")
+                        + "'\n"
+                        + "    key = '"
+                        + userMapper.get("key")
                         + "'\n";
-        toml.add(fabricService);
+        toml.add(user);
+
+        List<Map<String, String>> ordersMapper =
+                (List<Map<String, String>>) stubConfig.get("orders");
+        for (Map<String, String> order : ordersMapper) {
+            String orders =
+                    "[[orders]]\n"
+                            + "    domain = '"
+                            + order.get("domain")
+                            + "'\n"
+                            + "    tlsCa = '"
+                            + order.get("tlsCa")
+                            + "'\n"
+                            + "    address = '"
+                            + order.get("address")
+                            + "'\n";
+            toml.add(orders);
+        }
+
+        List<Map<String, String>> peersMapper = (List<Map<String, String>>) stubConfig.get("peers");
+        for (Map<String, String> peer : peersMapper) {
+            String peers =
+                    "[[peers]]\n"
+                            + "    orgName = '"
+                            + peer.get("orgName")
+                            + "'\n"
+                            + "    domain = '"
+                            + peer.get("domain")
+                            + "'\n"
+                            + "    tlsCa = '"
+                            + peer.get("tlsCa")
+                            + "'\n"
+                            + "    address = '"
+                            + peer.get("address")
+                            + "'\n";
+            toml.add(peers);
+        }
 
         String mq =
                 "[mq]\n"
@@ -220,6 +263,67 @@ public class FabricStubFactory implements StubFactory {
         return toml.toString();
     }
 
+    private Map<String, Object> trySaveCertsAndUpdateStubConfigObject(
+            String stubPath, Map<String, Object> stubConfig) throws IOException {
+        Map<String, String> user = (Map<String, String>) stubConfig.get("user");
+        String userName = user.get("name");
+        File crtFile =
+                new File(
+                        stubPath
+                                + File.separator
+                                + "accounts"
+                                + File.separator
+                                + userName
+                                + File.separator
+                                + "account.crt");
+        writeContent(crtFile, user.get("crt"));
+        user.put("crt", crtFile.getAbsolutePath());
+
+        File keyFile =
+                new File(
+                        stubPath
+                                + File.separator
+                                + "accounts"
+                                + File.separator
+                                + userName
+                                + File.separator
+                                + "account.key");
+        writeContent(keyFile, user.get("key"));
+        user.put("key", keyFile.getAbsolutePath());
+
+        List<Map<String, String>> ordersMapper =
+                (List<Map<String, String>>) stubConfig.get("orders");
+        for (Map<String, String> order : ordersMapper) {
+            File tlsCaFile =
+                    new File(
+                            stubPath
+                                    + File.separator
+                                    + "order-cert"
+                                    + File.separator
+                                    + order.get("domain")
+                                    + File.separator
+                                    + "orderer-tlsca.crt");
+            writeContent(tlsCaFile, order.get("tlsCa"));
+            order.put("tlsCa", tlsCaFile.getAbsolutePath());
+        }
+
+        List<Map<String, String>> peersMapper = (List<Map<String, String>>) stubConfig.get("peers");
+        for (Map<String, String> peer : peersMapper) {
+            File tlsCaFile =
+                    new File(
+                            stubPath
+                                    + File.separator
+                                    + "peers-pem"
+                                    + File.separator
+                                    + peer.get("domain")
+                                    + "-cert.pem");
+            writeContent(tlsCaFile, peer.get("tlsCa"));
+            peer.put("tlsCa", tlsCaFile.getAbsolutePath());
+        }
+
+        return stubConfig;
+    }
+
     @Override
     public void generateConnection(String path, String[] args) {
         try {
@@ -227,13 +331,16 @@ public class FabricStubFactory implements StubFactory {
             String chainName = args[1];
             String stubConfigStr = args[2];
             String mqConfigStr = args[3];
-            ObjectMapper objectMapper = new ObjectMapper();
+
             Map<String, Object> stubConfig =
                     objectMapper.readValue(
                             stubConfigStr, new TypeReference<Map<String, Object>>() {});
+
             Map<String, Object> mqConfig =
                     objectMapper.readValue(
                             mqConfigStr, new TypeReference<Map<String, Object>>() {});
+
+            stubConfig = trySaveCertsAndUpdateStubConfigObject(path, stubConfig);
             String stubTomlContent =
                     generateTomlStr(
                             chainType,
@@ -242,8 +349,6 @@ public class FabricStubFactory implements StubFactory {
                             (Map<String, Object>) mqConfig.get("mq"));
             File confFile = new File(path + File.separator + "stub.toml");
             writeContent(confFile, stubTomlContent);
-
-            StubConfigGenerator.generateConfig(stubConfigStr, path);
 
             // Generate proxy and hub chaincodes
             generateProxyChaincodes(path);

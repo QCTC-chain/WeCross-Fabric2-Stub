@@ -10,14 +10,17 @@ public class FabricAccount implements Account {
     private int keyID;
     private boolean isDefault;
 
+    private String orgName;
     private String userName;
     private String mspID;
     private String pubKey;
     private String secKey;
 
-    public FabricAccount(String userName, String mspID, String pubKey, String secKey) {
+    public FabricAccount(
+            String userName, String orgName, String mspID, String pubKey, String secKey) {
         this.userName = userName;
         this.mspID = mspID;
+        this.orgName = orgName;
         this.pubKey = pubKey;
         this.secKey = secKey;
     }
@@ -68,5 +71,9 @@ public class FabricAccount implements Account {
 
     public String getMspID() {
         return this.mspID;
+    }
+
+    public String getOrgName() {
+        return this.orgName;
     }
 }

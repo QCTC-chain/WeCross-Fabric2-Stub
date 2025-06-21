@@ -1,12 +1,11 @@
 package com.webank.wecross.stub.fabric2.config;
 
+import java.util.List;
+
 public class StubConfig {
     public static class FabricServices {
         private String channelName;
-        private String orgUserName;
-        private String ordererTlsCa;
-        private String ordererAddress;
-
+        private String userOrgName;
         // Getters and setters
         public String getChannelName() {
             return channelName;
@@ -16,36 +15,50 @@ public class StubConfig {
             this.channelName = channelName;
         }
 
-        public String getOrgUserName() {
-            return orgUserName;
+        public String getUserOrgName() {
+            return userOrgName;
         }
 
-        public void setOrgUserName(String orgUserName) {
-            this.orgUserName = orgUserName;
+        public void setUserOrgName(String channelName) {
+            this.userOrgName = userOrgName;
+        }
+    }
+
+    public static class Order {
+        private String domain;
+        private String tlsCa;
+        private String address;
+
+        public String getTlsCa() {
+            return tlsCa;
         }
 
-        public String getOrdererTlsCa() {
-            return ordererTlsCa;
+        public void setTlsCa(String tlsCa) {
+            this.tlsCa = tlsCa;
         }
 
-        public void setOrdererTlsCa(String ordererTlsCa) {
-            this.ordererTlsCa = ordererTlsCa;
+        public String getAddress() {
+            return address;
         }
 
-        public String getOrdererAddress() {
-            return ordererAddress;
+        public void setAddress(String address) {
+            this.address = address;
         }
 
-        public void setOrdererAddress(String ordererAddress) {
-            this.ordererAddress = ordererAddress;
+        public String getDomain() {
+            return domain;
+        }
+
+        public void setDomain(String domain) {
+            this.domain = domain;
         }
     }
 
     public static class Org {
         private String name;
         private String mspid;
-        private java.util.List<Peer> peers;
-        private java.util.List<User> users;
+        private List<String> peers;
+        private List<User> users;
 
         // Getters and setters
         public String getName() {
@@ -64,28 +77,38 @@ public class StubConfig {
             this.mspid = mspid;
         }
 
-        public java.util.List<Peer> getPeers() {
+        public List<String> getPeers() {
             return peers;
         }
 
-        public void setPeers(java.util.List<Peer> peers) {
+        public void setPeers(List<String> peers) {
             this.peers = peers;
         }
 
-        public java.util.List<User> getUsers() {
+        public List<User> getUsers() {
             return users;
         }
 
-        public void setUsers(java.util.List<User> users) {
+        public void setUsers(List<User> users) {
             this.users = users;
         }
     }
 
     public static class Peer {
+        private String orgName;
         private String tlsCa;
         private String address;
+        private String domain;
 
         // Getters and setters
+        public String getOrgName() {
+            return orgName;
+        }
+
+        public void setOrgName(String orgName) {
+            this.orgName = orgName;
+        }
+
         public String getTlsCa() {
             return tlsCa;
         }
@@ -100,6 +123,14 @@ public class StubConfig {
 
         public void setAddress(String address) {
             this.address = address;
+        }
+
+        public String getDomain() {
+            return domain;
+        }
+
+        public void setDomain(String domain) {
+            this.domain = domain;
         }
     }
 
@@ -136,7 +167,9 @@ public class StubConfig {
     }
 
     private FabricServices fabricServices;
-    private java.util.List<Org> orgs;
+    private List<Org> orgs;
+    private List<Order> orders;
+    private List<Peer> peers;
 
     // Getters and setters
     public FabricServices getFabricServices() {
@@ -147,11 +180,27 @@ public class StubConfig {
         this.fabricServices = fabricServices;
     }
 
-    public java.util.List<Org> getOrgs() {
+    public List<Org> getOrgs() {
         return orgs;
     }
 
-    public void setOrgs(java.util.List<Org> orgs) {
+    public void setOrgs(List<Org> orgs) {
         this.orgs = orgs;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
+
+    public List<Peer> getPeers() {
+        return peers;
+    }
+
+    public void setPeers(List<Peer> peers) {
+        this.peers = peers;
     }
 }
