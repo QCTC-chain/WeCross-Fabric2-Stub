@@ -31,13 +31,11 @@ public class FabricPRCRest implements FabricRPC {
     }
 
     @Override
-    public RemoteCall<Response> instantiateRemoteService() {
+    public RemoteCall<Response> instantiateRemoteService(
+            InstantiationRequest instantiationRequest) {
+        Request<InstantiationRequest> request = new Request<>(instantiationRequest);
         return new RemoteCall<>(
-                fabricService,
-                "POST",
-                "/api/v1/service/instantiate",
-                Response.class,
-                new Request<>());
+                fabricService, "POST", "/api/v1/connect/test", Response.class, request);
     }
 
     @Override

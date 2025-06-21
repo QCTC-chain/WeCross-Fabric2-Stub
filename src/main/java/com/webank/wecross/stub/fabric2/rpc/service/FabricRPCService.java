@@ -50,7 +50,7 @@ public class FabricRPCService implements FabricService {
 
     @Override
     public void init() throws FabricRPCException {
-        server = "http://127.0.0.1:8080";
+        server = "http://127.0.0.1:9090";
         logger.info("RPC service init: {}", server);
         httpClient = getHttpAsyncClient();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

@@ -47,9 +47,12 @@ public class FabricConnection implements Connection {
         fabricService.init();
         fabricPRCRest = new FabricPRCRest(fabricService);
 
-        // 启动远程服务
+        // 启动/测试远程服务
+        String sdkConfig = FabricSDKConfigGenerator.getDefaultSDKConfig(stubPath);
+        logger.info("初始化配置: {}", sdkConfig);
+        InstantiationRequest request = new InstantiationRequest(sdkConfig);
         com.webank.wecross.stub.fabric2.rpc.methods.Response response =
-                fabricPRCRest.instantiateRemoteService().send();
+                fabricPRCRest.instantiateRemoteService(request).send();
         if (response.getErrorCode() != 0) {
             throw new RuntimeException("实例化 Fabric2 服务失败");
         }

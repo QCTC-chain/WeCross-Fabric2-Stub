@@ -7,7 +7,7 @@ import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
 public interface FabricRPC {
     RemoteCall<Response> initConfiguration(String configuration);
 
-    RemoteCall<Response> instantiateRemoteService();
+    RemoteCall<Response> instantiateRemoteService(InstantiationRequest instantiationRequest);
 
     RemoteCall<Response> getBlock(GetBlockRequest request);
 
