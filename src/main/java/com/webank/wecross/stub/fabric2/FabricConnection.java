@@ -54,7 +54,8 @@ public class FabricConnection implements Connection {
         com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                 fabricPRCRest.instantiateRemoteService(request).send();
         if (response.getErrorCode() != 0) {
-            throw new RuntimeException("实例化 Fabric2 服务失败");
+            throw new RuntimeException(
+                    String.format("实例化 Fabric2 服务失败。原因: %s", response.getMessage()));
         }
         threadPool.initialize();
         this.stubToml = ConfigUtils.getToml(stubPath + File.separator + "stub.toml");

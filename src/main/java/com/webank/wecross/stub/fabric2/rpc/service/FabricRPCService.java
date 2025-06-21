@@ -131,7 +131,7 @@ public class FabricRPCService implements FabricService {
 
             builder.setHeader("Accept", "application/json")
                     .setHeader("Content-Type", "application/json")
-                    .setBody(objectMapper.writeValueAsString(request))
+                    .setBody(objectMapper.writeValueAsString(request.getData()))
                     .execute(
                             new AsyncCompletionHandler<Object>() {
                                 @Override

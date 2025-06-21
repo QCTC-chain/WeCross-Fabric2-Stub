@@ -19,7 +19,7 @@ public class StubConfig {
             return userOrgName;
         }
 
-        public void setUserOrgName(String channelName) {
+        public void setUserOrgName(String userOrgName) {
             this.userOrgName = userOrgName;
         }
     }
