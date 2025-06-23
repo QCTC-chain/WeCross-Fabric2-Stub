@@ -157,7 +157,7 @@ public class FabricSDKConfigGenerator {
                   fail-fast: false
                   allow-insecure: false
                 tlsCACerts:
-                  path: /Users/org1CA/ca.org1.example.com-cert.pem
+                  path: /Users/org1CA/ca.org1.example.com-cert.crt
         */
         Map<String, Object> peers = new HashMap<>();
         for (StubConfig.Peer peer : stubConfig.getPeers()) {
@@ -189,7 +189,7 @@ public class FabricSDKConfigGenerator {
             users:
               Admin:
                 cert:
-                  path: /Users/ca.org1.example.com-cert.pem
+                  path: /Users/ca.org1.example.com-cert.crt
             peers:
               - peer0.org1.example.com
         * */

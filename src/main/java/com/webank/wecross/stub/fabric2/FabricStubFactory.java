@@ -315,10 +315,10 @@ public class FabricStubFactory implements StubFactory {
                     new File(
                             stubPath
                                     + File.separator
-                                    + "peers-pem"
+                                    + "peers-crt"
                                     + File.separator
                                     + peer.get("domain")
-                                    + "-cert.pem");
+                                    + "-cert.crt");
             writeContent(tlsCaFile, peer.get("tlsCa"));
             peer.put("tlsCa", tlsCaFile.getAbsolutePath());
         }

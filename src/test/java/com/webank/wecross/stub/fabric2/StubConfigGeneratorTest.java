@@ -25,7 +25,7 @@ public class StubConfigGeneratorTest {
                     + "    {\n"
                     + "      \"orgName\": \"Org1\",\n"
                     + "      \"domain\": \"peer0.org1.example.com\",\n"
-                    + "      \"tlsCa\": \"/Users/dbliu/Desktop/peers-pem/peer0.org1.example.com-cert.pem\",\n"
+                    + "      \"tlsCa\": \"/Users/dbliu/Desktop/peers-pem/peer0.org1.example.com-cert.crt\",\n"
                     + "      \"address\": \"grpcs://192.168.11.38:7051\"\n"
                     + "    }\n"
                     + "  ]\n"
