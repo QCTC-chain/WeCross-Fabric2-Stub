@@ -10,6 +10,7 @@ import com.webank.wecross.stub.Response;
 import com.webank.wecross.stub.fabric2.common.FabricType;
 import com.webank.wecross.stub.fabric2.rpc.FabricPRCRest;
 import com.webank.wecross.stub.fabric2.rpc.methods.request.*;
+import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractResultResponse;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
 import com.webank.wecross.stub.fabric2.rpc.model.ContractInfo;
 import com.webank.wecross.stub.fabric2.rpc.model.Contracts;
@@ -134,7 +135,7 @@ public class FabricConnection implements Connection {
                             (String) requestData.get("method"),
                             (Object[]) requestData.get("args"));
 
-            com.webank.wecross.stub.fabric2.rpc.methods.Response response;
+            ContractResultResponse response;
             if (isEvaluate) {
                 response = fabricPRCRest.call(fabricTransactionRequest).send();
             } else {
@@ -149,7 +150,7 @@ public class FabricConnection implements Connection {
                 return FabricConnectionResponse.build()
                         .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
                         .errorMessage(response.getMessage())
-                        .data(objectMapper.writeValueAsBytes(response.getData()));
+                        .data(objectMapper.writeValueAsBytes(response.getPayload()));
             }
         } catch (Exception e) {
             return FabricConnectionResponse.build()
@@ -322,8 +323,9 @@ public class FabricConnection implements Connection {
     public List<ResourceInfo> getResources() {
         List<ResourceInfo> resourceInfos = new ArrayList<>();
         try {
-            ContractsResponse contractsResponse =
-                    fabricPRCRest.getContractList(getChainName(), getChannelId()).send();
+            String sdkConfig = FabricSDKConfigGenerator.getDefaultSDKConfig(this.stubPath);
+            GetContractListRequest request = new GetContractListRequest(sdkConfig);
+            ContractsResponse contractsResponse = fabricPRCRest.getContractList(request).send();
             Contracts contracts = contractsResponse.getContracts();
 
             for (ContractInfo contractInfo : contracts.getContractInfos()) {

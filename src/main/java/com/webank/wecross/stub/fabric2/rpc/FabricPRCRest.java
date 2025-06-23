@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webank.wecross.stub.fabric2.rpc.methods.Request;
 import com.webank.wecross.stub.fabric2.rpc.methods.Response;
 import com.webank.wecross.stub.fabric2.rpc.methods.request.*;
+import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractResultResponse;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
 import com.webank.wecross.stub.fabric2.rpc.service.FabricService;
 
@@ -46,14 +47,11 @@ public class FabricPRCRest implements FabricRPC {
     }
 
     @Override
-    public RemoteCall<ContractsResponse> getContractList(String chainName, String channelId) {
+    public RemoteCall<ContractsResponse> getContractList(
+            GetContractListRequest contractListRequest) {
+        Request<GetContractListRequest> request = new Request<>(contractListRequest);
         return new RemoteCall<>(
-                fabricService,
-                "GET",
-                String.format(
-                        "/api/v1/contract/list?chainName=%s&channelId=%s", chainName, channelId),
-                ContractsResponse.class,
-                new Request<>());
+                fabricService, "POST", "/api/v1/contract/list", ContractsResponse.class, request);
     }
 
     @Override
@@ -80,17 +78,26 @@ public class FabricPRCRest implements FabricRPC {
     }
 
     @Override
-    public RemoteCall<Response> call(FabricTransactionRequest transactionRequest) {
+    public RemoteCall<ContractResultResponse> call(FabricTransactionRequest transactionRequest) {
         Request<FabricTransactionRequest> request = new Request<>(transactionRequest);
         return new RemoteCall<>(
-                fabricService, "POST", "/api/v1/contract/call", Response.class, request);
+                fabricService,
+                "POST",
+                "/api/v1/contract/call",
+                ContractResultResponse.class,
+                request);
     }
 
     @Override
-    public RemoteCall<Response> sendTransaction(FabricTransactionRequest transactionRequest) {
+    public RemoteCall<ContractResultResponse> sendTransaction(
+            FabricTransactionRequest transactionRequest) {
         Request<FabricTransactionRequest> request = new Request<>(transactionRequest);
         return new RemoteCall<>(
-                fabricService, "POST", "/api/v1/contract/sendTransaction", Response.class, request);
+                fabricService,
+                "POST",
+                "/api/v1/contract/sendTransaction",
+                ContractResultResponse.class,
+                request);
     }
 
     @Override
