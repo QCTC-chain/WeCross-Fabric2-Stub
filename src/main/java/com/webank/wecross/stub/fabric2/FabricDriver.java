@@ -164,12 +164,11 @@ public class FabricDriver implements Driver {
                                             new TypeReference<Map<String, Object>>() {});
                             Block block = new Block();
                             BlockHeader blockHeader = new BlockHeader();
-                            blockHeader.setNumber((long) responseData.get("number"));
-                            blockHeader.setHash((String) responseData.get("hash"));
-                            blockHeader.setPrevHash((String) responseData.get("preHash"));
+                            blockHeader.setNumber((long) responseData.get("blockNumber"));
+                            blockHeader.setHash((String) responseData.get("dataHash"));
+                            blockHeader.setPrevHash((String) responseData.get("previousHash"));
                             block.setBlockHeader(blockHeader);
-                            block.setTransactionsHashes(
-                                    (List<String>) responseData.get("transactions"));
+                            block.setTransactionsHashes(null);
                             block.setRawBytes(response.getData());
                             callback.onResponse(null, block);
                         } catch (IOException e) {
