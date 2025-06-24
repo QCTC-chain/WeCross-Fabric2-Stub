@@ -62,9 +62,9 @@ public class FabricSDKConfigGenerator {
         for (StubConfig.Order order : stubConfig.getOrders()) {
             Map<String, Object> entity = new HashMap<>();
             entity.put("mappedHost", order.getDomain());
-            entity.put("pattern", order.getDomain() + ".(\\w+)");
-            entity.put("sslTargetOverrideUrlSubstitutionExp", order.getDomain());
-            entity.put("urlSubstitutionExp", order.getAddress());
+            entity.put("pattern", order.getDomain() + ":(\\d+)");
+            // entity.put("sslTargetOverrideUrlSubstitutionExp", order.getDomain());
+            // entity.put("urlSubstitutionExp", order.getAddress());
             orders.add(entity);
         }
         entityMatchers.put("orderer", orders);
@@ -73,12 +73,12 @@ public class FabricSDKConfigGenerator {
         for (StubConfig.Peer peer : stubConfig.getPeers()) {
             Map<String, Object> entity = new HashMap<>();
             entity.put("mappedHost", peer.getDomain());
-            entity.put("pattern", peer.getDomain() + ".(\\w+)");
-            entity.put("sslTargetOverrideUrlSubstitutionExp", peer.getDomain());
-            entity.put("urlSubstitutionExp", peer.getAddress());
+            entity.put("pattern", peer.getDomain() + ":(\\d+)");
+            // entity.put("sslTargetOverrideUrlSubstitutionExp", peer.getDomain());
+            // entity.put("urlSubstitutionExp", peer.getAddress());
             peers.add(entity);
         }
-        entityMatchers.put("peers", peers);
+        entityMatchers.put("peer", peers);
 
         return entityMatchers;
     }
@@ -97,6 +97,10 @@ public class FabricSDKConfigGenerator {
         Map<String, Object> channels = new HashMap<>();
         String channelId = stubConfig.getFabricServices().getChannelName();
 
+        // TODO
+        // 测试
+        String userOrg = stubConfig.getFabricServices().getUserOrgName();
+
         Map<String, Object> channelConfig = new HashMap<>();
 
         Map<String, Object> onePeerFixedConfig = new HashMap<>();
@@ -106,7 +110,9 @@ public class FabricSDKConfigGenerator {
         onePeerFixedConfig.put("eventSource", true);
         Map<String, Object> peers = new HashMap<>();
         for (StubConfig.Peer peer : stubConfig.getPeers()) {
-            peers.put(peer.getDomain(), onePeerFixedConfig);
+            if (userOrg.equals(peer.getOrgName())) {
+                peers.put(peer.getDomain(), onePeerFixedConfig);
+            }
         }
         channelConfig.put("peers", peers);
         channels.put(channelId, channelConfig);
@@ -197,7 +203,7 @@ public class FabricSDKConfigGenerator {
         for (StubConfig.Org org : stubConfig.getOrgs()) {
             String orgId = org.getName();
             Map<String, Object> oneOrgConfig = new HashMap<>();
-            oneOrgConfig.put("mspId", org.getMspid());
+            oneOrgConfig.put("mspid", org.getMspid());
 
             Map<String, Object> users = new HashMap<>();
             for (StubConfig.User user : org.getUsers()) {
@@ -405,7 +411,7 @@ public class FabricSDKConfigGenerator {
 
         // 更新 organizations
         Map<String, Object> objectMap = new HashMap<>();
-        objectMap.put("mspId", account.getMspID());
+        objectMap.put("mspid", account.getMspID());
         objectMap.put("peers", peers);
         objectMap.put("users", users);
         organizations.put(account.getOrgName(), objectMap);

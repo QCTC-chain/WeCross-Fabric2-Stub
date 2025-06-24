@@ -13,7 +13,6 @@ import com.webank.wecross.stub.fabric2.rpc.methods.request.*;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractResultResponse;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
 import com.webank.wecross.stub.fabric2.rpc.model.ContractInfo;
-import com.webank.wecross.stub.fabric2.rpc.model.Contracts;
 import com.webank.wecross.stub.fabric2.rpc.service.FabricRPCService;
 import com.webank.wecross.stub.fabric2.rpc.service.FabricService;
 import com.webank.wecross.stub.fabric2.utils.ConfigUtils;
@@ -326,9 +325,9 @@ public class FabricConnection implements Connection {
             String sdkConfig = FabricSDKConfigGenerator.getDefaultSDKConfig(this.stubPath);
             GetContractListRequest request = new GetContractListRequest(sdkConfig);
             ContractsResponse contractsResponse = fabricPRCRest.getContractList(request).send();
-            Contracts contracts = contractsResponse.getContracts();
+            List<ContractInfo> contracts = contractsResponse.getContracts();
 
-            for (ContractInfo contractInfo : contracts.getContractInfos()) {
+            for (ContractInfo contractInfo : contracts) {
                 ResourceInfo resourceInfo = new ResourceInfo();
                 resourceInfo.setName(contractInfo.getName());
                 resourceInfo.setStubType(getStubType());
@@ -337,7 +336,7 @@ public class FabricConnection implements Connection {
         } catch (Exception e) {
             logger.error("获取合约列表失败。{}", e.getMessage());
         }
-
+        logger.info("获取的合约列表: {}", resourceInfos);
         return resourceInfos;
     }
 
