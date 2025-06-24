@@ -62,7 +62,10 @@ public class FabricDriver implements Driver {
                         if (response.getErrorCode()
                                 != FabricType.TransactionResponseStatus.SUCCESS) {
                             logger.error(
-                                    "The response of async send was failure. {}",
+                                    "发送交易请求, 响应失败. 请求: {}:{} {}, 失败: {}",
+                                    context.getPath().getResource(),
+                                    request.getMethod(),
+                                    request.getArgs(),
                                     response.getErrorMessage());
                             callback.onTransactionResponse(
                                     new TransactionException(
@@ -76,16 +79,26 @@ public class FabricDriver implements Driver {
                         transactionResponse.setMessage(transactionResponse.getMessage());
                         transactionResponse.setResult(
                                 new String[] {new String(response.getData())});
-                        callback.onTransactionResponse(null, null);
+                        callback.onTransactionResponse(null, transactionResponse);
                     });
         } catch (JsonProcessingException e) {
-            logger.error("asyncSendTransaction was failure. {}", e);
+            logger.error(
+                    "发送交易请求过程中出现异常. 请求: {}:{} {}, 失败: {}",
+                    context.getPath().getResource(),
+                    request.getMethod(),
+                    request.getArgs(),
+                    e);
             callback.onTransactionResponse(
                     new TransactionException(
                             FabricType.TransactionResponseStatus.INTERNAL_ERROR, "格式数据失败"),
                     null);
         } catch (Exception e) {
-            logger.error("asyncSendTransaction was failure. {}", e);
+            logger.error(
+                    "发送交易请求过程中出现异常. 请求: {}:{} {}, 失败: {}",
+                    context.getPath().getResource(),
+                    request.getMethod(),
+                    request.getArgs(),
+                    e);
             callback.onTransactionResponse(
                     new TransactionException(
                             FabricType.TransactionResponseStatus.INTERNAL_ERROR, "其他错误"),
@@ -369,7 +382,15 @@ public class FabricDriver implements Driver {
                                                 path.getResource(), response.getErrorMessage())),
                                 null);
                     } else {
-                        callback.onResponse(null, response.getData());
+                        try {
+                            Map<String, Object> data =
+                                    objectMapper.readValue(
+                                            response.getData(),
+                                            new TypeReference<Map<String, Object>>() {});
+                            callback.onResponse(null, data);
+                        } catch (Exception e) {
+                            callback.onResponse(new Exception(String.format("处理结果失败")), null);
+                        }
                     }
                 });
     }

@@ -134,12 +134,13 @@ public class FabricConnection implements Connection {
             Map<String, Object> requestData =
                     objectMapper.readValue(
                             request.getData(), new TypeReference<Map<String, Object>>() {});
+            List<Object> args = (List<Object>) requestData.get("args");
             FabricTransactionRequest fabricTransactionRequest =
                     new FabricTransactionRequest(
                             (String) requestData.get("sdkConfig"),
                             (String) requestData.get("chaincodeName"),
                             (String) requestData.get("method"),
-                            (Object[]) requestData.get("args"));
+                            args.toArray(new Object[0]));
             updateFabricRequest(fabricTransactionRequest);
 
             ContractResultResponse response;
@@ -292,15 +293,30 @@ public class FabricConnection implements Connection {
     private Response handleRegisterExistingContract(Request request) {
         try {
             String sdkConfig = new String(request.getData(), StandardCharsets.UTF_8);
-            GetContractInfoRequest contractInfoRequest =
-                    new GetContractInfoRequest(sdkConfig, request.getResourceInfo().getName());
-            updateFabricRequest(contractInfoRequest);
-            com.webank.wecross.stub.fabric2.rpc.methods.Response response =
-                    fabricPRCRest.getContractInfo(contractInfoRequest).send();
-            if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
+            GetContractListRequest contractListRequest = new GetContractListRequest(sdkConfig);
+            updateFabricRequest(contractListRequest);
+            ContractsResponse contractsResponse =
+                    fabricPRCRest.getContractList(contractListRequest).send();
+            if (contractsResponse.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
                 return FabricConnectionResponse.build()
-                        .errorCode(response.getErrorCode())
-                        .errorMessage(response.getMessage());
+                        .errorCode(contractsResponse.getErrorCode())
+                        .errorMessage(contractsResponse.getMessage());
+            }
+
+            List<ContractInfo> contracts = contractsResponse.getContracts();
+            boolean isExist = false;
+            for (ContractInfo contractInfo : contracts) {
+                if (contractInfo.getName().equals(request.getResourceInfo().getName())) {
+                    isExist = true;
+                    break;
+                }
+            }
+
+            if (!isExist) {
+                return FabricConnectionResponse.build()
+                        .errorCode(FabricType.TransactionResponseStatus.INTERNAL_ERROR)
+                        .errorMessage(
+                                String.format("合约 %s 不存在", request.getResourceInfo().getName()));
             } else {
                 Map<Object, Object> resourceProperties = new HashMap<>();
                 resourceProperties.put("CHANNEL_ID", getChannelId());
@@ -310,10 +326,9 @@ public class FabricConnection implements Connection {
                 resourceProperties.put("CONTRACT_RUNTIME_TYPE", "GO");
                 request.getResourceInfo().setProperties(resourceProperties);
                 connectionEventHandler.onANewResource(request.getResourceInfo());
-
                 return FabricConnectionResponse.build()
                         .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
-                        .errorMessage(response.getMessage())
+                        .errorMessage("")
                         .data(objectMapper.writeValueAsBytes(resourceProperties));
             }
         } catch (Exception e) {
@@ -325,6 +340,7 @@ public class FabricConnection implements Connection {
 
     @Override
     public void setConnectionEventHandler(ConnectionEventHandler eventHandler) {
+        logger.info("ssssssssssssssssssssssss {}", eventHandler);
         this.connectionEventHandler = eventHandler;
     }
 
@@ -340,6 +356,10 @@ public class FabricConnection implements Connection {
             GetContractListRequest request = new GetContractListRequest(sdkConfig);
             updateFabricRequest(request);
             ContractsResponse contractsResponse = fabricPRCRest.getContractList(request).send();
+            if (contractsResponse.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
+                logger.error("获取合约列表失败，响应消息: {}", contractsResponse.getMessage());
+                return resourceInfos;
+            }
             List<ContractInfo> contracts = contractsResponse.getContracts();
 
             for (ContractInfo contractInfo : contracts) {
