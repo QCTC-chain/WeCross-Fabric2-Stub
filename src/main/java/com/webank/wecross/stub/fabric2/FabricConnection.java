@@ -51,6 +51,7 @@ public class FabricConnection implements Connection {
         String sdkConfig = FabricSDKConfigGenerator.getDefaultSDKConfig(stubPath);
         logger.info("初始化配置: {}", sdkConfig);
         InstantiationRequest request = new InstantiationRequest(sdkConfig);
+        updateFabricRequest(request);
         com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                 fabricPRCRest.instantiateRemoteService(request).send();
         if (response.getErrorCode() != 0) {
@@ -69,8 +70,14 @@ public class FabricConnection implements Connection {
         return this.stubToml.getString("common.type");
     }
 
-    private String getChainName() {
-        return this.stubToml.getString("common.name");
+    private void updateFabricRequest(FabricBaseRequest request) {
+        String stubType = getProperties().get(FabricType.Properties.STUB_TYPE);
+        if (stubType.equals(FabricType.GM_STUB_NAME)) {
+            request.setGM(true);
+        } else if (stubType.equals(FabricType.GM_SM3_STUB_NAME)) {
+            request.setGM(true);
+            request.setSM3(true);
+        }
     }
 
     private Response send(Request request) {
@@ -133,6 +140,7 @@ public class FabricConnection implements Connection {
                             (String) requestData.get("chaincodeName"),
                             (String) requestData.get("method"),
                             (Object[]) requestData.get("args"));
+            updateFabricRequest(fabricTransactionRequest);
 
             ContractResultResponse response;
             if (isEvaluate) {
@@ -168,6 +176,7 @@ public class FabricConnection implements Connection {
                             (String) requestData.get("sdkConfig"),
                             (long) requestData.get("blockNumber"),
                             (boolean) requestData.get("onlyHeader"));
+            updateFabricRequest(getBlockRequest);
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.getBlock(getBlockRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
@@ -196,6 +205,7 @@ public class FabricConnection implements Connection {
                             (String) requestData.get("transactionHash"),
                             (long) requestData.get("blockNumber"),
                             (boolean) requestData.get("isVerified"));
+            updateFabricRequest(transactionRequest);
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.getTransactionInfo(transactionRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
@@ -227,6 +237,7 @@ public class FabricConnection implements Connection {
                             (String) requestData.get("topic"),
                             (long) requestData.get("fromBlock"),
                             (long) requestData.get("endBlock"));
+            updateFabricRequest(subscribeEventRequest);
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.subscribeContractEvent(subscribeEventRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
@@ -256,6 +267,7 @@ public class FabricConnection implements Connection {
                     new UnSubscribeEventRequest(
                             (String) requestData.get("sdkConfig"),
                             (String) requestData.get("subscribeEventId"));
+            updateFabricRequest(unSubscribeEventRequest);
 
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.unSubscribeContractEvent(unSubscribeEventRequest).send();
@@ -281,6 +293,7 @@ public class FabricConnection implements Connection {
             String sdkConfig = new String(request.getData(), StandardCharsets.UTF_8);
             GetContractInfoRequest contractInfoRequest =
                     new GetContractInfoRequest(sdkConfig, request.getResourceInfo().getName());
+            updateFabricRequest(contractInfoRequest);
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                     fabricPRCRest.getContractInfo(contractInfoRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
@@ -324,6 +337,7 @@ public class FabricConnection implements Connection {
         try {
             String sdkConfig = FabricSDKConfigGenerator.getDefaultSDKConfig(this.stubPath);
             GetContractListRequest request = new GetContractListRequest(sdkConfig);
+            updateFabricRequest(request);
             ContractsResponse contractsResponse = fabricPRCRest.getContractList(request).send();
             List<ContractInfo> contracts = contractsResponse.getContracts();
 

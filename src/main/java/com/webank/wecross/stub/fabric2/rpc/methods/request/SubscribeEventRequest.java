@@ -1,7 +1,6 @@
 package com.webank.wecross.stub.fabric2.rpc.methods.request;
 
-public class SubscribeEventRequest {
-    private String sdkConfig;
+public class SubscribeEventRequest extends FabricBaseRequest {
     private String chaincodeName;
     private String eventName;
     private long fromBlock = -1;
@@ -9,19 +8,11 @@ public class SubscribeEventRequest {
 
     public SubscribeEventRequest(
             String sdkConfig, String chaincodeName, String topic, long fromBlock, long endBlock) {
-        this.sdkConfig = sdkConfig;
+        super(sdkConfig);
         this.chaincodeName = chaincodeName;
         this.eventName = topic;
         this.fromBlock = fromBlock;
         this.endBlock = endBlock;
-    }
-
-    public void setSdkConfig(String sdkConfig) {
-        this.sdkConfig = sdkConfig;
-    }
-
-    public String getSdkConfig() {
-        return this.sdkConfig;
     }
 
     public void setChaincodeName(String chaincodeName) {

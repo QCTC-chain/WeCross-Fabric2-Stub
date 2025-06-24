@@ -1,20 +1,11 @@
 package com.webank.wecross.stub.fabric2.rpc.methods.request;
 
-public class UnSubscribeEventRequest {
-    private String sdkConfig;
+public class UnSubscribeEventRequest extends FabricBaseRequest {
     private String subscribeEventId;
 
     public UnSubscribeEventRequest(String sdkConfig, String subscribeEventId) {
-        this.sdkConfig = sdkConfig;
+        super(sdkConfig);
         this.subscribeEventId = subscribeEventId;
-    }
-
-    public void setSdkConfig(String sdkConfig) {
-        this.sdkConfig = sdkConfig;
-    }
-
-    public String getSdkConfig() {
-        return this.sdkConfig;
     }
 
     public void setSubscribeEventId(String subscribeEventId) {

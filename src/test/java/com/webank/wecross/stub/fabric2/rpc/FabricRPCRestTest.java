@@ -42,6 +42,7 @@ public class FabricRPCRestTest {
             fabricRPCService.init();
 
             GetContractListRequest request = new GetContractListRequest(sdkConfig);
+            request.setGM(true);
 
             FabricPRCRest fabricPRCRest = new FabricPRCRest(fabricRPCService);
             ContractsResponse response = fabricPRCRest.getContractList(request).send();

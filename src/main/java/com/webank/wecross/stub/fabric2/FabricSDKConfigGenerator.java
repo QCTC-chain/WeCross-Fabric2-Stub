@@ -239,7 +239,7 @@ public class FabricSDKConfigGenerator {
 
         StubConfig stubConfig = new StubConfig();
 
-        Map<String, String> chainObject = (Map<String, String>)stubConfigMap.get("chain");
+        Map<String, String> chainObject = (Map<String, String>) stubConfigMap.get("chain");
 
         List<StubConfig.Order> orders =
                 jsonMapper.readValue(

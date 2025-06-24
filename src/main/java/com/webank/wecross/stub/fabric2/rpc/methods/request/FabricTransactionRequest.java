@@ -1,14 +1,13 @@
 package com.webank.wecross.stub.fabric2.rpc.methods.request;
 
-public class FabricTransactionRequest {
-    private String sdkConfig;
+public class FabricTransactionRequest extends FabricBaseRequest {
     private String chaincodeName;
     private String method;
     private Object[] args;
 
     public FabricTransactionRequest(
             String sdkConfig, String chaincodeName, String method, Object[] args) {
-        this.sdkConfig = sdkConfig;
+        super(sdkConfig);
         this.chaincodeName = chaincodeName;
         this.method = method;
         this.args = args;
@@ -20,14 +19,6 @@ public class FabricTransactionRequest {
 
     public String getChaincodeName() {
         return this.chaincodeName;
-    }
-
-    public void setSdkConfig(String sdkConfig) {
-        this.sdkConfig = sdkConfig;
-    }
-
-    public String getSdkConfig() {
-        return this.sdkConfig;
     }
 
     public void setMethod(String method) {
