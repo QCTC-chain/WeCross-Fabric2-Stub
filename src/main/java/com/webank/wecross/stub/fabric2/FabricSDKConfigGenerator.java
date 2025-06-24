@@ -232,8 +232,7 @@ public class FabricSDKConfigGenerator {
         return organizations;
     }
 
-    private static StubConfig makeStubConfigFrom(String chainName, String stubConfigJson)
-            throws IOException {
+    private static StubConfig makeStubConfigFrom(String stubConfigJson) throws IOException {
         ObjectMapper jsonMapper = new ObjectMapper();
         Map<String, Object> stubConfigMap =
                 jsonMapper.readValue(stubConfigJson, new TypeReference<Map<String, Object>>() {});
@@ -258,7 +257,7 @@ public class FabricSDKConfigGenerator {
         org.setMspid(userObject.get("mspId"));
 
         StubConfig.FabricServices fabricServices = new StubConfig.FabricServices();
-        fabricServices.setChannelName(chainName);
+        fabricServices.setChannelName((String) stubConfigMap.get("channelName"));
         fabricServices.setUserOrgName(userObject.get("orgName"));
         stubConfig.setFabricServices(fabricServices);
 
@@ -295,12 +294,11 @@ public class FabricSDKConfigGenerator {
         Map<String, Object> map = toml.toMap();
         map.remove("common");
         ObjectMapper objectMapper = new ObjectMapper();
-        return generateSDKConfig(chainName, objectMapper.writeValueAsString(map));
+        return generateSDKConfig(objectMapper.writeValueAsString(map));
     }
 
-    public static String generateSDKConfig(String chainName, String stubConfigJson)
-            throws IOException {
-        StubConfig stubConfig = makeStubConfigFrom(chainName, stubConfigJson);
+    public static String generateSDKConfig(String stubConfigJson) throws IOException {
+        StubConfig stubConfig = makeStubConfigFrom(stubConfigJson);
 
         Map<String, Object> config = new HashMap<>();
         config.put("version", VERSION);

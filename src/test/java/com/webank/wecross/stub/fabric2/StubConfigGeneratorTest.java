@@ -7,6 +7,7 @@ import org.junit.Test;
 public class StubConfigGeneratorTest {
     private final String stubConfigStr =
             "{\n"
+                    + "\"channelName\": \"mychannel\",\n"
                     + "  \"user\": {\n"
                     + "    \"orgName\": \"Org1\",\n"
                     + "    \"mspId\": \"Org1MSP\",\n"
@@ -47,7 +48,7 @@ public class StubConfigGeneratorTest {
     @Test
     public void generateStubConfigTest() {
         try {
-            String sdkConfig = FabricSDKConfigGenerator.generateSDKConfig("fabric2", stubConfigStr);
+            String sdkConfig = FabricSDKConfigGenerator.generateSDKConfig(stubConfigStr);
             System.out.println(sdkConfig);
 
             sdkConfig =
