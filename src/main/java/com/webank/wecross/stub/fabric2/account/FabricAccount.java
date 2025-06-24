@@ -1,7 +1,6 @@
 package com.webank.wecross.stub.fabric2.account;
 
 import com.webank.wecross.stub.Account;
-import com.webank.wecross.stub.fabric2.common.FabricType;
 import java.nio.charset.StandardCharsets;
 import org.bouncycastle.jcajce.provider.digest.Keccak;
 import org.bouncycastle.util.encoders.Hex;
@@ -15,6 +14,8 @@ public class FabricAccount implements Account {
     private String mspID;
     private String pubKey;
     private String secKey;
+
+    private String type;
 
     public FabricAccount(
             String userName, String orgName, String mspID, String pubKey, String secKey) {
@@ -32,7 +33,11 @@ public class FabricAccount implements Account {
 
     @Override
     public String getType() {
-        return FabricType.Account.FABRIC_ACCOUNT;
+        return this.type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     @Override

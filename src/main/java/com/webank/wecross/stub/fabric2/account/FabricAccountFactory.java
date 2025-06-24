@@ -1,5 +1,7 @@
 package com.webank.wecross.stub.fabric2.account;
 
+import static com.webank.wecross.stub.fabric2.common.FabricType.GM_SM3_STUB_NAME;
+import static com.webank.wecross.stub.fabric2.common.FabricType.GM_STUB_NAME;
 import static com.webank.wecross.stub.fabric2.common.FabricType.STUB_NAME;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -29,7 +31,9 @@ public class FabricAccountFactory {
             String pubKey = (String) properties.get("pubKey");
             String secKey = (String) properties.get("secKey");
 
-            if (!type.equals(STUB_NAME)) {
+            if (!type.equals(STUB_NAME)
+                    && !type.equals(GM_STUB_NAME)
+                    && !type.equals(GM_SM3_STUB_NAME)) {
                 logger.error("Invalid stub type: " + type);
                 return null;
             }
@@ -71,6 +75,7 @@ public class FabricAccountFactory {
             FabricAccount account = build(username, orgName, mspID, pubKey, secKey);
             account.setKeyID(keyID);
             account.setDefault(isDefault);
+            account.setType(type);
             return account;
         } catch (Exception e) {
             logger.error("创建账户失败: {}", e);

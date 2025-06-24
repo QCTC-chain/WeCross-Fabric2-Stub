@@ -2,10 +2,8 @@ package com.webank.wecross.stub.fabric2.common;
 
 public class FabricType {
     public static final String STUB_NAME = "Fabric2.0";
-
-    public static final class Account {
-        public static final String FABRIC_ACCOUNT = STUB_NAME;
-    }
+    public static final String GM_STUB_NAME = "GM_Fabric2.0";
+    public static final String GM_SM3_STUB_NAME = "GM_SM3_Fabric2.0";
 
     public static final class ConnectionMessage {
         // Connection send message type

@@ -3,16 +3,16 @@ package com.webank.wecross.stub.fabric2;
 import com.webank.wecross.stub.Stub;
 import com.webank.wecross.stub.fabric2.common.FabricType;
 
-@Stub(FabricType.STUB_NAME)
-public class FabricStubFactory extends FabricStubBaseFactory {
-    public FabricStubFactory() {
-        super(FabricType.STUB_NAME);
+@Stub(FabricType.GM_SM3_STUB_NAME)
+public class GMAndSM3FabricStubFactory extends FabricStubBaseFactory {
+    public GMAndSM3FabricStubFactory() {
+        super(FabricType.GM_SM3_STUB_NAME);
     }
 
     public static void main(String[] args) throws Exception {
         System.out.println(
                 "This is "
-                        + FabricType.STUB_NAME
+                        + FabricType.GM_SM3_STUB_NAME
                         + " Stub Plugin. Please copy this file to router/plugin/");
         System.out.println("To deploy WeCrossProxy:");
         System.out.println(
