@@ -22,8 +22,8 @@ public class FabricAccountFactory {
                             (String) properties.get("ext0"),
                             new TypeReference<Map<String, String>>() {});
             // String username = (String) properties.get("username");
-            String username = ext0Mapper.get("userName");
-            String mspID = ext0Mapper.get("mspID");
+            String username = ext0Mapper.get("username");
+            String mspID = ext0Mapper.get("mspId");
             String orgName = ext0Mapper.get("orgName");
             Integer keyID = (Integer) properties.get("keyID");
             String type = (String) properties.get("type");

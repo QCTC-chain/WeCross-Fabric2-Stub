@@ -81,7 +81,7 @@ public class FabricStubBaseFactory implements StubFactory {
                                     + File.separator
                                     + "accounts"
                                     + File.separator
-                                    + account.getIdentity()
+                                    + account.getName()
                                     + File.separator
                                     + "account.crt");
             writeContent(certFile, account.getPubKey());
@@ -92,7 +92,7 @@ public class FabricStubBaseFactory implements StubFactory {
                                     + File.separator
                                     + "accounts"
                                     + File.separator
-                                    + account.getIdentity()
+                                    + account.getName()
                                     + File.separator
                                     + "account.key");
             writeContent(keyFile, account.getSecKey());
