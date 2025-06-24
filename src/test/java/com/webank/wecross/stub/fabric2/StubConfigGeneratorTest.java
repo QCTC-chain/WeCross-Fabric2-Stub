@@ -79,6 +79,6 @@ public class StubConfigGeneratorTest {
     public void fabricStubFactoryTest() {
         FabricStubBaseFactory factory = new FabricStubBaseFactory();
         String[] args = new String[] {"GM_Fabric2.0", "Fabric2", stubConfigStr, mqConfigStr};
-        factory.generateConnection("/Users/dbliu/Desktop", args);
+        factory.generateConnection("/Users/dbliu/Desktop/Fabric2", args);
     }
 }

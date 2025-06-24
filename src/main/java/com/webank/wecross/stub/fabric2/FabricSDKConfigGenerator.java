@@ -239,6 +239,8 @@ public class FabricSDKConfigGenerator {
 
         StubConfig stubConfig = new StubConfig();
 
+        Map<String, String> chainObject = (Map<String, String>)stubConfigMap.get("chain");
+
         List<StubConfig.Order> orders =
                 jsonMapper.readValue(
                         jsonMapper.writeValueAsBytes(stubConfigMap.get("orders")),
@@ -257,7 +259,7 @@ public class FabricSDKConfigGenerator {
         org.setMspid(userObject.get("mspId"));
 
         StubConfig.FabricServices fabricServices = new StubConfig.FabricServices();
-        fabricServices.setChannelName((String) stubConfigMap.get("channelName"));
+        fabricServices.setChannelName((String) chainObject.get("channelName"));
         fabricServices.setUserOrgName(userObject.get("orgName"));
         stubConfig.setFabricServices(fabricServices);
 

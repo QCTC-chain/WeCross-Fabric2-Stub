@@ -188,6 +188,11 @@ public class FabricStubBaseFactory implements StubFactory {
                         + "'\n";
         toml.add(stubCommon);
 
+        String stubChain =
+                "[chain]\n" +
+                        "    channelName = '" + (String) stubConfig.get("channelName")+ "'\n";
+        toml.add(stubChain);
+
         Map<String, String> userMapper = (Map<String, String>) stubConfig.get("user");
         String user =
                 "[user]\n"
