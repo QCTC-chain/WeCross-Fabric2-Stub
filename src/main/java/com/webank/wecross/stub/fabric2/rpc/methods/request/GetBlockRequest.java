@@ -2,12 +2,12 @@ package com.webank.wecross.stub.fabric2.rpc.methods.request;
 
 public class GetBlockRequest {
     private String sdkConfig;
-    private long blockNumber;
+    private String blockNumber;
     private boolean onlyHeader;
 
     public GetBlockRequest(String sdkConfig, long blockNumber, boolean onlyHeader) {
         this.sdkConfig = sdkConfig;
-        this.blockNumber = blockNumber;
+        this.blockNumber = (blockNumber == -1) ? "latest" : String.format("%d", blockNumber);
         this.onlyHeader = onlyHeader;
     }
 
@@ -19,11 +19,11 @@ public class GetBlockRequest {
         return this.sdkConfig;
     }
 
-    public void setBlockNumber(long blockNumber) {
+    public void setBlockNumber(String blockNumber) {
         this.blockNumber = blockNumber;
     }
 
-    public long getBlockNumber() {
+    public String getBlockNumber() {
         return this.blockNumber;
     }
 
