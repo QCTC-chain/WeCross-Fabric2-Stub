@@ -162,9 +162,11 @@ public class FabricDriver implements Driver {
                                     objectMapper.readValue(
                                             response.getData(),
                                             new TypeReference<Map<String, Object>>() {});
+
+                            int blockHeight = (int) responseData.get("blockNumber");
                             Block block = new Block();
                             BlockHeader blockHeader = new BlockHeader();
-                            blockHeader.setNumber((long) responseData.get("blockNumber"));
+                            blockHeader.setNumber((long) blockHeight);
                             blockHeader.setHash((String) responseData.get("dataHash"));
                             blockHeader.setPrevHash((String) responseData.get("previousHash"));
                             block.setBlockHeader(blockHeader);

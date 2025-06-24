@@ -171,10 +171,11 @@ public class FabricConnection implements Connection {
             Map<String, Object> requestData =
                     objectMapper.readValue(
                             request.getData(), new TypeReference<Map<String, Object>>() {});
+            int blockNumber = (int) requestData.get("blockNumber");
             GetBlockRequest getBlockRequest =
                     new GetBlockRequest(
                             (String) requestData.get("sdkConfig"),
-                            (long) requestData.get("blockNumber"),
+                            (long) blockNumber,
                             (boolean) requestData.get("onlyHeader"));
             updateFabricRequest(getBlockRequest);
             com.webank.wecross.stub.fabric2.rpc.methods.Response response =

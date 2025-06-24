@@ -14,11 +14,12 @@ public class FabricRPCRestTest {
         try {
             String sdkConfig =
                     FabricSDKConfigGenerator.getDefaultSDKConfig(
-                            "file:///Users/dbliu/Desktop/Desktop/WeCross/docker/bmsp-cross/fabric2/conf/chains/mychannel");
+                            "file:///Users/dbliu/Desktop/Desktop/WeCross/docker/bmsp-cross/fabric2/conf/chains/fabric3");
             FabricRPCService fabricRPCService = new FabricRPCService();
             fabricRPCService.init();
 
             InstantiationRequest request = new InstantiationRequest(sdkConfig);
+            request.setGM(true);
 
             FabricPRCRest fabricPRCRest = new FabricPRCRest(fabricRPCService);
             Response response = fabricPRCRest.instantiateRemoteService(request).send();
