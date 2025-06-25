@@ -40,6 +40,14 @@ public class FabricDriver implements Driver {
             Callback callback,
             boolean isEvaluate) {
         try {
+            if ("WeCrossHub".equals(context.getPath().getResource())) {
+                callback.onTransactionResponse(
+                        new TransactionException(
+                                FabricType.TransactionResponseStatus.INTERNAL_ERROR,
+                                "忽略 WeCrossHub 合约"),
+                        null);
+                return;
+            }
             FabricAccount account = (FabricAccount) context.getAccount();
             String sdkConfig =
                     FabricSDKConfigGenerator.getOrUpdateSDKConfig(
