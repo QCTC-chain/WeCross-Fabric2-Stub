@@ -19,19 +19,19 @@ public class FabricBaseRequest {
         return this.sdkConfig;
     }
 
-    public void setGM(boolean isGM) {
+    public void setIsGM(boolean isGM) {
         this.isGM = isGM;
     }
 
-    public boolean isGM() {
+    public boolean getIsGM() {
         return this.isGM;
     }
 
-    public void setSM3(boolean isSM3) {
+    public void setIsSM3(boolean isSM3) {
         this.isSM3 = isSM3;
     }
 
-    public boolean isSM3() {
+    public boolean getIsSM3() {
         return this.isSM3;
     }
 }

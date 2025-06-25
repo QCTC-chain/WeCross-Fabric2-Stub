@@ -19,7 +19,8 @@ public class FabricRPCRestTest {
             fabricRPCService.init();
 
             InstantiationRequest request = new InstantiationRequest(sdkConfig);
-            request.setGM(true);
+            request.setIsGM(true);
+            request.setIsSM3(true);
 
             FabricPRCRest fabricPRCRest = new FabricPRCRest(fabricRPCService);
             Response response = fabricPRCRest.instantiateRemoteService(request).send();
@@ -43,7 +44,7 @@ public class FabricRPCRestTest {
             fabricRPCService.init();
 
             GetContractListRequest request = new GetContractListRequest(sdkConfig);
-            request.setGM(true);
+            request.setIsGM(true);
 
             FabricPRCRest fabricPRCRest = new FabricPRCRest(fabricRPCService);
             ContractsResponse response = fabricPRCRest.getContractList(request).send();

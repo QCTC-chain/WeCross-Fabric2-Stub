@@ -14,7 +14,6 @@ import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractResultRespon
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
 import com.webank.wecross.stub.fabric2.rpc.model.ContractInfo;
 import com.webank.wecross.stub.fabric2.rpc.service.FabricRPCService;
-import com.webank.wecross.stub.fabric2.rpc.service.FabricService;
 import com.webank.wecross.stub.fabric2.utils.ConfigUtils;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -43,7 +42,7 @@ public class FabricConnection implements Connection {
 
     // 链接初始化
     public void start() throws Exception {
-        FabricService fabricService = new FabricRPCService();
+        FabricRPCService fabricService = new FabricRPCService();
         fabricService.init();
         fabricPRCRest = new FabricPRCRest(fabricService);
 
@@ -52,6 +51,7 @@ public class FabricConnection implements Connection {
         logger.info("初始化配置: {}", sdkConfig);
         InstantiationRequest request = new InstantiationRequest(sdkConfig);
         updateFabricRequest(request);
+        logger.info("发送初始化请求: {}", request);
         com.webank.wecross.stub.fabric2.rpc.methods.Response response =
                 fabricPRCRest.instantiateRemoteService(request).send();
         if (response.getErrorCode() != 0) {
@@ -73,10 +73,10 @@ public class FabricConnection implements Connection {
     private void updateFabricRequest(FabricBaseRequest request) {
         String stubType = getProperties().get(FabricType.Properties.STUB_TYPE);
         if (stubType.equals(FabricType.GM_STUB_NAME)) {
-            request.setGM(true);
+            request.setIsGM(true);
         } else if (stubType.equals(FabricType.GM_SM3_STUB_NAME)) {
-            request.setGM(true);
-            request.setSM3(true);
+            request.setIsGM(true);
+            request.setIsSM3(true);
         }
     }
 
@@ -340,7 +340,6 @@ public class FabricConnection implements Connection {
 
     @Override
     public void setConnectionEventHandler(ConnectionEventHandler eventHandler) {
-        logger.info("ssssssssssssssssssssssss {}", eventHandler);
         this.connectionEventHandler = eventHandler;
     }
 

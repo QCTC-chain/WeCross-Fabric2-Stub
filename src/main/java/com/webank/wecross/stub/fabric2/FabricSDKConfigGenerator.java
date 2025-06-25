@@ -292,7 +292,6 @@ public class FabricSDKConfigGenerator {
 
     public static String generateSDKConfigFrom(String stubTomlPath) throws Exception {
         Toml toml = ConfigUtils.getToml(stubTomlPath);
-        String chainName = toml.getString("common.name");
         Map<String, Object> map = toml.toMap();
         map.remove("common");
         ObjectMapper objectMapper = new ObjectMapper();
@@ -366,6 +365,9 @@ public class FabricSDKConfigGenerator {
                 (Map<String, Object>) sdkConfigMapper.get("organizations");
         organizations.clear();
 
+        if (stubPath.contains("classpath:")) {
+            stubPath = ConfigUtils.classpath2Absolute(stubPath);
+        }
         // 保存用户的 cert
         File crtFile =
                 new File(
