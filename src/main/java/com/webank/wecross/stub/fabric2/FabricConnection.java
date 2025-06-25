@@ -158,7 +158,7 @@ public class FabricConnection implements Connection {
                 return FabricConnectionResponse.build()
                         .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
                         .errorMessage(response.getMessage())
-                        .data(objectMapper.writeValueAsBytes(response.getPayload()));
+                        .data(objectMapper.writeValueAsBytes(response.getData()));
             }
         } catch (Exception e) {
             return FabricConnectionResponse.build()

@@ -81,13 +81,36 @@ public class FabricDriver implements Driver {
                                     null);
                             return;
                         }
-                        TransactionResponse transactionResponse = new TransactionResponse();
-                        transactionResponse.setErrorCode(
-                                FabricType.TransactionResponseStatus.SUCCESS);
-                        transactionResponse.setMessage(transactionResponse.getMessage());
-                        transactionResponse.setResult(
-                                new String[] {new String(response.getData())});
-                        callback.onTransactionResponse(null, transactionResponse);
+
+                        try {
+                            Map<String, Object> dataObject =
+                                    objectMapper.readValue(
+                                            response.getData(),
+                                            new TypeReference<Map<String, Object>>() {});
+                            int height = (int) dataObject.get("height");
+                            String txHash = (String) dataObject.get("txHash");
+                            String payload = (String) dataObject.get("payload");
+                            TransactionResponse transactionResponse = new TransactionResponse();
+                            transactionResponse.setErrorCode(
+                                    FabricType.TransactionResponseStatus.SUCCESS);
+                            transactionResponse.setMessage(response.getErrorMessage());
+                            transactionResponse.setBlockNumber(height);
+                            transactionResponse.setHash(txHash);
+                            transactionResponse.setResult(new String[] {payload});
+                            callback.onTransactionResponse(null, transactionResponse);
+                        } catch (Exception e) {
+                            logger.error(
+                                    "发送交易请求, 处理响应失败. 请求: {}:{} {}, 失败: {}",
+                                    context.getPath().getResource(),
+                                    request.getMethod(),
+                                    request.getArgs(),
+                                    e.getMessage());
+                            callback.onTransactionResponse(
+                                    new TransactionException(
+                                            FabricType.TransactionResponseStatus.INTERNAL_ERROR,
+                                            "处理返回数据失败"),
+                                    null);
+                        }
                     });
         } catch (JsonProcessingException e) {
             logger.error(
