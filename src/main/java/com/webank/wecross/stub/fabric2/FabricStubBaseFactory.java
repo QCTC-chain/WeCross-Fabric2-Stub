@@ -81,6 +81,8 @@ public class FabricStubBaseFactory implements StubFactory {
                                     + File.separator
                                     + "accounts"
                                     + File.separator
+                                    + account.getOrgName()
+                                    + File.separator
                                     + account.getName()
                                     + File.separator
                                     + "account.crt");
@@ -91,6 +93,8 @@ public class FabricStubBaseFactory implements StubFactory {
                             this.stubPath
                                     + File.separator
                                     + "accounts"
+                                    + File.separator
+                                    + account.getOrgName()
                                     + File.separator
                                     + account.getName()
                                     + File.separator
@@ -284,11 +288,14 @@ public class FabricStubBaseFactory implements StubFactory {
             String stubPath, Map<String, Object> stubConfig) throws IOException {
         Map<String, String> user = (Map<String, String>) stubConfig.get("user");
         String userName = user.get("name");
+        String orgName = user.get("orgName");
         File crtFile =
                 new File(
                         stubPath
                                 + File.separator
                                 + "accounts"
+                                + File.separator
+                                + orgName
                                 + File.separator
                                 + userName
                                 + File.separator
@@ -301,6 +308,8 @@ public class FabricStubBaseFactory implements StubFactory {
                         stubPath
                                 + File.separator
                                 + "accounts"
+                                + File.separator
+                                + orgName
                                 + File.separator
                                 + userName
                                 + File.separator

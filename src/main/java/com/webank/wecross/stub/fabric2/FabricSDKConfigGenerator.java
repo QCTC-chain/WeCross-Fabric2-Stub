@@ -375,6 +375,8 @@ public class FabricSDKConfigGenerator {
                                 + File.separator
                                 + "accounts"
                                 + File.separator
+                                + account.getOrgName()
+                                + File.separator
                                 + account.getName()
                                 + File.separator
                                 + "account.crt");
@@ -390,6 +392,8 @@ public class FabricSDKConfigGenerator {
                         stubPath
                                 + File.separator
                                 + "accounts"
+                                + File.separator
+                                + account.getOrgName()
                                 + File.separator
                                 + account.getName()
                                 + File.separator
