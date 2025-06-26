@@ -7,6 +7,7 @@ import com.webank.wecross.stub.fabric2.rpc.methods.Response;
 import com.webank.wecross.stub.fabric2.rpc.methods.request.*;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractResultResponse;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
+import com.webank.wecross.stub.fabric2.rpc.methods.response.SubscribeResponse;
 import com.webank.wecross.stub.fabric2.rpc.service.FabricService;
 
 public class FabricPRCRest implements FabricRPC {
@@ -62,19 +63,27 @@ public class FabricPRCRest implements FabricRPC {
     }
 
     @Override
-    public RemoteCall<Response> subscribeContractEvent(
+    public RemoteCall<SubscribeResponse> subscribeContractEvent(
             SubscribeEventRequest subscribeEventRequest) {
         Request<SubscribeEventRequest> request = new Request<>(subscribeEventRequest);
         return new RemoteCall<>(
-                fabricService, "POST", "/api/v1/contract/subscribe", Response.class, request);
+                fabricService,
+                "POST",
+                "/api/v1/contract/subscribe",
+                SubscribeResponse.class,
+                request);
     }
 
     @Override
-    public RemoteCall<Response> unSubscribeContractEvent(
+    public RemoteCall<SubscribeResponse> unSubscribeContractEvent(
             UnSubscribeEventRequest unSubscribeEventRequest) {
         Request<UnSubscribeEventRequest> request = new Request<>(unSubscribeEventRequest);
         return new RemoteCall<>(
-                fabricService, "POST", "/api/v1/contract/unsubscribe", Response.class, request);
+                fabricService,
+                "POST",
+                "/api/v1/contract/unsubscribe",
+                SubscribeResponse.class,
+                request);
     }
 
     @Override

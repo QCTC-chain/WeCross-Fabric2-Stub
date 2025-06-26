@@ -4,6 +4,7 @@ import com.webank.wecross.stub.fabric2.rpc.methods.Response;
 import com.webank.wecross.stub.fabric2.rpc.methods.request.*;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractResultResponse;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
+import com.webank.wecross.stub.fabric2.rpc.methods.response.SubscribeResponse;
 
 public interface FabricRPC {
     RemoteCall<Response> initConfiguration(String configuration);
@@ -16,9 +17,11 @@ public interface FabricRPC {
 
     RemoteCall<Response> getContractInfo(GetContractInfoRequest contractInfoRequest);
 
-    RemoteCall<Response> subscribeContractEvent(SubscribeEventRequest subscribeEventRequest);
+    RemoteCall<SubscribeResponse> subscribeContractEvent(
+            SubscribeEventRequest subscribeEventRequest);
 
-    RemoteCall<Response> unSubscribeContractEvent(UnSubscribeEventRequest unSubscribeEventRequest);
+    RemoteCall<SubscribeResponse> unSubscribeContractEvent(
+            UnSubscribeEventRequest unSubscribeEventRequest);
 
     RemoteCall<ContractResultResponse> call(FabricTransactionRequest transactionRequest);
 

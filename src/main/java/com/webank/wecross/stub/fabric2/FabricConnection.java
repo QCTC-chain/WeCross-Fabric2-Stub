@@ -12,6 +12,7 @@ import com.webank.wecross.stub.fabric2.rpc.FabricPRCRest;
 import com.webank.wecross.stub.fabric2.rpc.methods.request.*;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractResultResponse;
 import com.webank.wecross.stub.fabric2.rpc.methods.response.ContractsResponse;
+import com.webank.wecross.stub.fabric2.rpc.methods.response.SubscribeResponse;
 import com.webank.wecross.stub.fabric2.rpc.model.ContractInfo;
 import com.webank.wecross.stub.fabric2.rpc.service.FabricRPCService;
 import com.webank.wecross.stub.fabric2.utils.ConfigUtils;
@@ -232,15 +233,17 @@ public class FabricConnection implements Connection {
             Map<String, Object> requestData =
                     objectMapper.readValue(
                             request.getData(), new TypeReference<Map<String, Object>>() {});
+            int fromBlock = (int) requestData.get("fromBlock");
+            int toBlock = (int) requestData.get("endBlock");
             SubscribeEventRequest subscribeEventRequest =
                     new SubscribeEventRequest(
                             (String) requestData.get("sdkConfig"),
                             (String) requestData.get("chaincodeName"),
                             (String) requestData.get("topic"),
-                            (long) requestData.get("fromBlock"),
-                            (long) requestData.get("endBlock"));
+                            fromBlock,
+                            toBlock);
             updateFabricRequest(subscribeEventRequest);
-            com.webank.wecross.stub.fabric2.rpc.methods.Response response =
+            SubscribeResponse response =
                     fabricPRCRest.subscribeContractEvent(subscribeEventRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
                 return FabricConnectionResponse.build()
@@ -250,7 +253,7 @@ public class FabricConnection implements Connection {
                 return FabricConnectionResponse.build()
                         .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
                         .errorMessage(response.getMessage())
-                        .data(objectMapper.writeValueAsBytes(response.getData()));
+                        .data(objectMapper.writeValueAsBytes(response.getSubscribeId()));
             }
         } catch (Exception e) {
             return FabricConnectionResponse.build()
@@ -271,7 +274,7 @@ public class FabricConnection implements Connection {
                             (String) requestData.get("subscribeEventId"));
             updateFabricRequest(unSubscribeEventRequest);
 
-            com.webank.wecross.stub.fabric2.rpc.methods.Response response =
+            SubscribeResponse response =
                     fabricPRCRest.unSubscribeContractEvent(unSubscribeEventRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
                 return FabricConnectionResponse.build()
@@ -281,7 +284,7 @@ public class FabricConnection implements Connection {
                 return FabricConnectionResponse.build()
                         .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
                         .errorMessage(response.getMessage())
-                        .data(objectMapper.writeValueAsBytes(response.getData()));
+                        .data(objectMapper.writeValueAsBytes(response.getSubscribeId()));
             }
         } catch (Exception e) {
             return FabricConnectionResponse.build()
