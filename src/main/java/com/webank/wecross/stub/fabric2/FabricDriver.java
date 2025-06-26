@@ -303,6 +303,7 @@ public class FabricDriver implements Driver {
                                 objectMapper.writeValueAsBytes(requestData));
             } else {
                 requestData.put("sdkConfig", sdkConfig);
+                requestData.put("chainName", context.getPath().getChain());
                 requestData.put("chaincodeName", context.getPath().getResource());
                 requestData.put("topic", topic);
                 requestData.put("fromBlock", request.getFromBlockNumber());

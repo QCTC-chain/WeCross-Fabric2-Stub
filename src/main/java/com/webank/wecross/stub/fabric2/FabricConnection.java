@@ -238,6 +238,7 @@ public class FabricConnection implements Connection {
             SubscribeEventRequest subscribeEventRequest =
                     new SubscribeEventRequest(
                             (String) requestData.get("sdkConfig"),
+                            (String) requestData.get("chainName"),
                             (String) requestData.get("chaincodeName"),
                             (String) requestData.get("topic"),
                             fromBlock,
