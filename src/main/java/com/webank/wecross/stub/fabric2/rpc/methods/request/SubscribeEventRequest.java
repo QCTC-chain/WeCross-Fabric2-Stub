@@ -4,8 +4,8 @@ public class SubscribeEventRequest extends FabricBaseRequest {
     private String chainName;
     private String chaincodeName;
     private String eventName;
-    private long fromBlock = -1;
-    private long endBlock = -1;
+    private String fromBlock = "latest";
+    private String endBlock = "latest";
 
     public SubscribeEventRequest(
             String sdkConfig,
@@ -18,8 +18,8 @@ public class SubscribeEventRequest extends FabricBaseRequest {
         this.chainName = chainNamea;
         this.chaincodeName = chaincodeName;
         this.eventName = topic;
-        this.fromBlock = fromBlock;
-        this.endBlock = endBlock;
+        this.fromBlock = fromBlock == -1 ? "latest" : String.format("%d", fromBlock);
+        this.endBlock = endBlock == -1 ? "latest" : String.format("%d", endBlock);
     }
 
     public String getChainName() {
@@ -46,19 +46,19 @@ public class SubscribeEventRequest extends FabricBaseRequest {
         return this.eventName;
     }
 
-    public void setFromBlock(long fromBlock) {
+    public void setFromBlock(String fromBlock) {
         this.fromBlock = fromBlock;
     }
 
-    public long getFromBlock() {
+    public String getFromBlock() {
         return this.fromBlock;
     }
 
-    public void setEndBlock(long endBlock) {
+    public void setEndBlock(String endBlock) {
         this.endBlock = endBlock;
     }
 
-    public long getEndBlock() {
+    public String getEndBlock() {
         return this.endBlock;
     }
 
