@@ -301,6 +301,7 @@ public class FabricDriver implements Driver {
                         Request.newRequest(
                                 FabricType.ConnectionMessage.FABRIC_UNSUBSCRIBE_CONTRACT,
                                 objectMapper.writeValueAsBytes(requestData));
+                logger.info("取消订阅事件, context: {}, request: {}", context, request);
             } else {
                 requestData.put("sdkConfig", sdkConfig);
                 requestData.put("chainName", context.getPath().getChain());
@@ -312,6 +313,7 @@ public class FabricDriver implements Driver {
                         Request.newRequest(
                                 FabricType.ConnectionMessage.FABRIC_SUBSCRIBE_CONTRACT,
                                 objectMapper.writeValueAsBytes(requestData));
+                logger.info("订阅事件, context: {}, request: {}", context, requestData);
             }
 
             connection.asyncSend(
@@ -319,6 +321,12 @@ public class FabricDriver implements Driver {
                     response -> {
                         if (response.getErrorCode()
                                 != FabricType.TransactionResponseStatus.SUCCESS) {
+                            logger.error(
+                                    "订阅事件失败 {}:{}:{}。message: {}",
+                                    context.getPath().getChain(),
+                                    context.getPath().getResource(),
+                                    topic,
+                                    response.getErrorMessage());
                             callback.onTransactionResponse(
                                     new TransactionException(
                                             response.getErrorCode(), response.getErrorMessage()),

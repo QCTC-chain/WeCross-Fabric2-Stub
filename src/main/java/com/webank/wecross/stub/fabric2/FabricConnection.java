@@ -244,9 +244,11 @@ public class FabricConnection implements Connection {
                             fromBlock,
                             toBlock);
             updateFabricRequest(subscribeEventRequest);
+            logger.info("往 fabric2 gateway 发送订阅请求: {}", subscribeEventRequest);
             SubscribeResponse response =
                     fabricPRCRest.subscribeContractEvent(subscribeEventRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
+                logger.error("fabric2 gateway 返回响应失败: {}", response.getMessage());
                 return FabricConnectionResponse.build()
                         .errorCode(response.getErrorCode())
                         .errorMessage(response.getMessage());
@@ -274,10 +276,11 @@ public class FabricConnection implements Connection {
                             (String) requestData.get("sdkConfig"),
                             (String) requestData.get("subscribeEventId"));
             updateFabricRequest(unSubscribeEventRequest);
-
+            logger.info("往 fabric2 gateway 发送取消订阅请求: {}", unSubscribeEventRequest);
             SubscribeResponse response =
                     fabricPRCRest.unSubscribeContractEvent(unSubscribeEventRequest).send();
             if (response.getErrorCode() != FabricType.TransactionResponseStatus.SUCCESS) {
+                logger.error("fabric2 gateway 返回取消订阅事件响应失败: {}", response.getMessage());
                 return FabricConnectionResponse.build()
                         .errorCode(response.getErrorCode())
                         .errorMessage(response.getMessage());
