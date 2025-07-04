@@ -254,7 +254,7 @@ public class FabricConnection implements Connection {
                 return FabricConnectionResponse.build()
                         .errorCode(FabricType.TransactionResponseStatus.SUCCESS)
                         .errorMessage(response.getMessage())
-                        .data(objectMapper.writeValueAsBytes(response.getSubscribeId()));
+                        .data(response.getSubscribeId().getBytes(StandardCharsets.UTF_8));
             }
         } catch (Exception e) {
             return FabricConnectionResponse.build()
