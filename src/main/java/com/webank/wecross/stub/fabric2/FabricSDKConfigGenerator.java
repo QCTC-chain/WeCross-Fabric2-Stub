@@ -42,7 +42,7 @@ public class FabricSDKConfigGenerator {
         }
     }
 
-    private static Map<String, Object> getEntityMatchers(StubConfig stubConfig) {
+    private static Map<String, Object> getEntityMatchers(StubConfig stubConfig, String chainType) {
         /*
         entitymatchers:
           orderer:
@@ -62,7 +62,12 @@ public class FabricSDKConfigGenerator {
         for (StubConfig.Order order : stubConfig.getOrders()) {
             Map<String, Object> entity = new HashMap<>();
             entity.put("mappedHost", order.getDomain());
-            entity.put("pattern", order.getDomain() + ":(\\d+)");
+            if ("GM_Fabric2.0".equals(chainType)) {
+                // 联通的 fabirc2 链配置
+                entity.put("pattern", order.getDomain() + ".(\\w+)");
+            } else {
+                entity.put("pattern", order.getDomain() + ":(\\d+)");
+            }
             // entity.put("sslTargetOverrideUrlSubstitutionExp", order.getDomain());
             // entity.put("urlSubstitutionExp", order.getAddress());
             orders.add(entity);
@@ -73,7 +78,11 @@ public class FabricSDKConfigGenerator {
         for (StubConfig.Peer peer : stubConfig.getPeers()) {
             Map<String, Object> entity = new HashMap<>();
             entity.put("mappedHost", peer.getDomain());
-            entity.put("pattern", peer.getDomain() + ":(\\d+)");
+            if ("GM_Fabric2.0".equals(chainType)) {
+                entity.put("pattern", peer.getDomain() + ".(\\w+)");
+            } else {
+                entity.put("pattern", peer.getDomain() + ":(\\d+)");
+            }
             // entity.put("sslTargetOverrideUrlSubstitutionExp", peer.getDomain());
             // entity.put("urlSubstitutionExp", peer.getAddress());
             peers.add(entity);
@@ -293,12 +302,14 @@ public class FabricSDKConfigGenerator {
     public static String generateSDKConfigFrom(String stubTomlPath) throws Exception {
         Toml toml = ConfigUtils.getToml(stubTomlPath);
         Map<String, Object> map = toml.toMap();
+        String chainType = toml.getString("common.type");
         map.remove("common");
         ObjectMapper objectMapper = new ObjectMapper();
-        return generateSDKConfig(objectMapper.writeValueAsString(map));
+        return generateSDKConfig(objectMapper.writeValueAsString(map), chainType);
     }
 
-    public static String generateSDKConfig(String stubConfigJson) throws IOException {
+    public static String generateSDKConfig(String stubConfigJson, String chainType)
+            throws IOException {
         StubConfig stubConfig = makeStubConfigFrom(stubConfigJson);
 
         Map<String, Object> config = new HashMap<>();
@@ -313,7 +324,7 @@ public class FabricSDKConfigGenerator {
         config.put("client", client);
 
         // entitymatchers
-        Map<String, Object> entitymatchers = getEntityMatchers(stubConfig);
+        Map<String, Object> entitymatchers = getEntityMatchers(stubConfig, chainType);
         config.put("entitymatchers", entitymatchers);
 
         // Channels section

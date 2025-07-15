@@ -48,12 +48,9 @@ public class StubConfigGeneratorTest {
     @Test
     public void generateStubConfigTest() {
         try {
-            String sdkConfig = FabricSDKConfigGenerator.generateSDKConfig(stubConfigStr);
-            System.out.println(sdkConfig);
-
-            sdkConfig =
+            String sdkConfig =
                     FabricSDKConfigGenerator.generateSDKConfigFrom(
-                            "file:///Users/dbliu/Desktop/stub.toml");
+                            "file:///Users/dbliu/Desktop/Desktop/WeCross/docker/bmsp-cross/fabric2/conf/chains/fabric2212/stub.toml");
             System.out.println(sdkConfig);
         } catch (Exception e) {
             System.err.println(e);
