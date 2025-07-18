@@ -43,8 +43,13 @@ public class FabricConnection implements Connection {
 
     // 链接初始化
     public void start() throws Exception {
+        String chainType = getProperties().get(FabricType.Properties.STUB_TYPE);
         FabricRPCService fabricService = new FabricRPCService();
-        fabricService.init();
+        if (chainType.equals(FabricType.GM_STUB_NAME)) {
+            fabricService.init("http://127.0.0.1:9091");
+        } else {
+            fabricService.init("http://127.0.0.1:9090");
+        }
         fabricPRCRest = new FabricPRCRest(fabricService);
 
         // 启动/测试远程服务
@@ -57,7 +62,7 @@ public class FabricConnection implements Connection {
                 fabricPRCRest.instantiateRemoteService(request).send();
         if (response.getErrorCode() != 0) {
             throw new RuntimeException(
-                    String.format("实例化 Fabric2 服务失败。原因: %s", response.getMessage()));
+                    String.format("实例化 %s 服务失败。原因: %s", chainType, response.getMessage()));
         }
         threadPool.initialize();
         this.stubToml = ConfigUtils.getToml(stubPath + File.separator + "stub.toml");

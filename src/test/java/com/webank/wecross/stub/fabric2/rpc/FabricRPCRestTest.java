@@ -16,7 +16,7 @@ public class FabricRPCRestTest {
                     FabricSDKConfigGenerator.getDefaultSDKConfig(
                             "file:///Users/dbliu/Desktop/Desktop/WeCross/docker/bmsp-cross/fabric2/conf/chains/fabric3");
             FabricRPCService fabricRPCService = new FabricRPCService();
-            fabricRPCService.init();
+            fabricRPCService.init(null);
 
             InstantiationRequest request = new InstantiationRequest(sdkConfig);
             request.setIsGM(true);
@@ -41,7 +41,7 @@ public class FabricRPCRestTest {
                     FabricSDKConfigGenerator.getDefaultSDKConfig(
                             "file:///Users/dbliu/Desktop/Desktop/WeCross/docker/bmsp-cross/fabric2/conf/chains/mychannel");
             FabricRPCService fabricRPCService = new FabricRPCService();
-            fabricRPCService.init();
+            fabricRPCService.init(null);
 
             GetContractListRequest request = new GetContractListRequest(sdkConfig);
             request.setIsGM(true);

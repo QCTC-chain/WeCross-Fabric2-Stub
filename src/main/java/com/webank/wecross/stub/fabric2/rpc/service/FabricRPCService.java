@@ -49,8 +49,13 @@ public class FabricRPCService implements FabricService {
     }
 
     @Override
-    public void init() throws FabricRPCException {
-        server = "http://127.0.0.1:9090";
+    public void init(String server) throws FabricRPCException {
+        if (server != null && !server.isEmpty()) {
+            this.server = server;
+        } else {
+            this.server = "http://127.0.0.1:9090";
+        }
+
         logger.info("RPC service init: {}", server);
         httpClient = getHttpAsyncClient();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
