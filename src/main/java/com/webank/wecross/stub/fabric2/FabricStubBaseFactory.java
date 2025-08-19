@@ -72,6 +72,9 @@ public class FabricStubBaseFactory implements StubFactory {
     }
 
     @Override
+    public void releaseConnection() {}
+
+    @Override
     public Account newAccount(Map<String, Object> properties) {
         FabricAccount account = FabricAccountFactory.build(properties);
         try {
