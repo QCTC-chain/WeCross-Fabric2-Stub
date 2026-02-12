@@ -95,8 +95,8 @@ public class FabricRPCService implements FabricService {
                 });
 
         try {
-            T response = responseFuture.get(20, TimeUnit.SECONDS);
-            FabricRPCException exception = exceptionFuture.get(20, TimeUnit.SECONDS);
+            T response = responseFuture.get(120, TimeUnit.SECONDS);
+            FabricRPCException exception = exceptionFuture.get(120, TimeUnit.SECONDS);
 
             if (logger.isDebugEnabled()) {
                 logger.debug("response: {}", response);
@@ -108,9 +108,10 @@ public class FabricRPCService implements FabricService {
 
             return response;
         } catch (TimeoutException e) {
-            logger.warn("http request timeout");
+            logger.warn("http request timeout. {}", uri);
             throw new FabricRPCException(
-                    ErrorCode.RPC_ERROR, "http request timeout, caused by: " + e.getMessage());
+                    ErrorCode.RPC_ERROR,
+                    "http request timeout, caused by: " + e.getMessage() + ". url:" + uri);
         } catch (Exception e) {
             logger.error("e: ", e);
             throw new FabricRPCException(
